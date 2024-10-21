@@ -131,11 +131,11 @@
         39: Hong
         40: Holand-Netherlands
 */
-short numValues[NUM_ATTRIBUTES] = {2, 8, 2, 16, 2, 7, 14, 6, 5, 2, 2, 2, 2, 41};
+short numValues[NUM_ATTRIBUTES] = {3, 9, 3, 17, 3, 8, 15, 7, 6, 3, 3, 3, 3, 42};
 //Precalculated thresholds (medians) of numerical attributes
 float thresholds[NUM_ATTRIBUTES] = {37, 0, 177299.5, 0, 10, 0, 0, 0, 0, 0, 0, 0, 40, 0};
 bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, false, false, false, true, true, true, false};
-#define MAX_VAL 40 
+#define MAX_VAL 41 
 #define MAX_BRANCH 5000
 
 short splitLeaf(short currentInstances[NUM_I], short data[][NUM_ATTRIBUTES+1], short numInstances, short method, bool parentAttribute[NUM_ATTRIBUTES], short branchIndex);
@@ -953,15 +953,20 @@ short valueToInt(char* value, short attribute)
 {
     if (isNumeric[attribute])
     {
-        if (atoi(value) <= thresholds[attribute])
-        {
-            //yes <=
-            return 0;
-        }
+        if (!(strcmp(value, "?")))
+            return 2;
         else
         {
-            //no >
-            return 1;
+            if (atoi(value) <= thresholds[attribute])
+            {
+                //yes <=
+                return 0;
+            }
+            else
+            {
+                //no >
+                return 1;
+            }
         }
     }
     else
@@ -985,6 +990,8 @@ short valueToInt(char* value, short attribute)
                     return 6;
                 if (!strcmp(value, "Never-worked"))
                     return 7;
+                if (!(strcmp(value, "?")))
+                    return 8;
                 break;
             case 3:
                 if (!strcmp(value, "Bachelors"))
@@ -1019,6 +1026,8 @@ short valueToInt(char* value, short attribute)
                     return 14;
                 if (!strcmp(value, "Preschool"))
                     return 15;
+                if (!(strcmp(value, "?")))
+                    return 16;
                 break;
             case 5:
                 if (!strcmp(value, "Married-civ-spouse"))
@@ -1035,6 +1044,8 @@ short valueToInt(char* value, short attribute)
                     return 5;
                 if (!strcmp(value, "Married-AF-spouse"))
                     return 6;
+                if (!(strcmp(value, "?")))
+                    return 7;
                 break;
             case 6:
                 if (!strcmp(value, "Tech-support"))
@@ -1065,6 +1076,8 @@ short valueToInt(char* value, short attribute)
                     return 12;
                 if (!strcmp(value, "Armed-Forces"))
                     return 13;
+                if (!(strcmp(value, "?")))
+                    return 14;
                 break;
             case 7:
                 if (!strcmp(value, "Wife"))
@@ -1079,6 +1092,8 @@ short valueToInt(char* value, short attribute)
                     return 4;
                 if (!strcmp(value, "Unmarried"))
                     return 5;
+                if (!(strcmp(value, "?")))
+                    return 6;
                 break;
             case 8:
                 if (!strcmp(value, "White"))
@@ -1091,12 +1106,16 @@ short valueToInt(char* value, short attribute)
                     return 3;
                 if (!strcmp(value, "Black"))
                     return 4;
+                if (!(strcmp(value, "?")))
+                    return 5;
                 break;
             case 9:
                 if (!strcmp(value, "Female"))
                     return 0;
                 if (!strcmp(value, "Male"))
                     return 1;
+                if (!(strcmp(value, "?")))
+                    return 2;
                 break;
             case 13:
                 if (!strcmp(value, "United-States"))
@@ -1181,6 +1200,8 @@ short valueToInt(char* value, short attribute)
                     return 39;
                 if (!strcmp(value, "Holand-Netherlands"))
                     return 40;
+                if (!(strcmp(value, "?")))
+                    return 41;
                 break;
         }
     }
@@ -1361,6 +1382,9 @@ void decodeValue(short attribute, short value)
                 case 1:
                     printf("'above median'");
                     break;
+                case 2:
+                    printf("'missing'");
+                    break;
             }
             break;
         case 1:
@@ -1390,6 +1414,9 @@ void decodeValue(short attribute, short value)
                 case 7:
                     printf("'Never-worked'");
                     break;
+                case 8:
+                    printf("'missing'");
+                    break;
             }
             break;
         case 2:
@@ -1400,6 +1427,9 @@ void decodeValue(short attribute, short value)
                     break;
                 case 1:
                     printf("'above median'");
+                    break;
+                case 2:
+                    printf("'missing'");
                     break;
             }
             break;
@@ -1454,6 +1484,9 @@ void decodeValue(short attribute, short value)
                 case 15:
                     printf("'Preschool'");
                     break;
+                case 16:
+                    printf("'missing'");
+                    break;
             }
             break;
         case 4:
@@ -1464,6 +1497,9 @@ void decodeValue(short attribute, short value)
                     break;
                 case 1:
                     printf("'above median'");
+                    break;
+                case 2:
+                    printf("'missing'");
                     break;
             }
             break;
@@ -1490,6 +1526,9 @@ void decodeValue(short attribute, short value)
                     break;
                 case 6:
                     printf("'Married-AF-spouse'");
+                    break;
+                case 7:
+                    printf("'missing'");
                     break;
             }
             break;
@@ -1538,6 +1577,9 @@ void decodeValue(short attribute, short value)
                 case 13:
                     printf("'Armed-Forces'");
                     break;
+                case 14:
+                    printf("'missing'");
+                    break;
             }
             break;
         case 7:
@@ -1561,6 +1603,9 @@ void decodeValue(short attribute, short value)
                 case 5:
                     printf("'Unmarried'");
                     break;
+                case 6:
+                    printf("'missing'");
+                    break;
             }
             break;
         case 8:
@@ -1581,6 +1626,9 @@ void decodeValue(short attribute, short value)
                 case 4:
                     printf("'Black'");
                     break;
+                case 5:
+                    printf("'missing'");
+                    break;
             }
             break;
         case 9:
@@ -1591,6 +1639,9 @@ void decodeValue(short attribute, short value)
                     break;
                 case 1:
                     printf("'Male'");
+                    break;
+                case 2:
+                    printf("'missing'");
                     break;
             }
             break;
@@ -1603,6 +1654,9 @@ void decodeValue(short attribute, short value)
                 case 1:
                     printf("'above median'");
                     break;
+                case 2:
+                    printf("'missing'");
+                    break;
             }
             break;
         case 11:
@@ -1614,6 +1668,9 @@ void decodeValue(short attribute, short value)
                 case 1:
                     printf("'above median'");
                     break;
+                case 2:
+                    printf("'missing'");
+                    break;
             }
             break;
         case 12:
@@ -1624,6 +1681,9 @@ void decodeValue(short attribute, short value)
                     break;
                 case 1:
                     printf("'above median'");
+                    break;
+                case 2:
+                    printf("'missing'");
                     break;
             }
             break;
@@ -1752,6 +1812,9 @@ void decodeValue(short attribute, short value)
                     break;
                 case 40:
                     printf("'Holand-Netherlands'");
+                    break;
+                case 41:
+                    printf("'missing'");
                     break;
             }
             break;
