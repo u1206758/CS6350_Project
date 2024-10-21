@@ -8,10 +8,9 @@
 #include <math.h>
 
 #define NUM_I 25000 //25000 instances in the training set
-#define NUM_LABELS 2 //Binary label
+#define NUM_LABELS 2 //Binary label, 0 = <=50k, 1= >50k
 #define NUM_ATTRIBUTES 14 //14 attributes
-/* 
-    Attributes & values
+/* Attributes & values
     0: age
         continuous -> binary 0 = <= median threshold
     1: workclass
@@ -40,7 +39,7 @@
         11: 1st-4th
         12: 10th
         13: Doctorate
-        14: 5-th-6th
+        14: 5th-6th
         15: Preschool
     4: education-num
         continuous -> binary 0 = <= median threshold
@@ -886,7 +885,7 @@ short countData(void)
      short count = 0;
 
     //Open input file
-    FILE *inputFile = fopen("train.csv", "r");
+    FILE *inputFile = fopen("train_final.csv", "r");
     if (inputFile == NULL)
     {
         printf("Error opening file");
@@ -914,7 +913,7 @@ short countData(void)
 
 short importData(short data[][NUM_ATTRIBUTES+1], short numInstances)
 {
-    FILE *inputFile = fopen("train.csv", "r");
+    FILE *inputFile = fopen("train_final.csv", "r");
     if (inputFile == NULL)
     {
         printf("Error opening file");
@@ -954,14 +953,14 @@ short valueToInt(char* value, short attribute)
 {
     if (isNumeric[attribute])
     {
-        if (atoi(value) >= thresholds[attribute])
+        if (atoi(value) <= thresholds[attribute])
         {
-            //yes >=
+            //yes <=
             return 0;
         }
         else
         {
-            //no <
+            //no >
             return 1;
         }
     }
@@ -970,116 +969,218 @@ short valueToInt(char* value, short attribute)
         switch (attribute)
         {
             case 1:
-                if (!strcmp(value, "admin"))
+                if (!strcmp(value, "Private"))
                     return 0;
-                else if (!strcmp(value, "unknown"))
+                if (!strcmp(value, "Self-emp-not-inc"))
                     return 1;
-                else if (!strcmp(value, "unemployed"))
+                if (!strcmp(value, "Self-emp-inc"))
                     return 2;
-                else if (!strcmp(value, "management"))
+                if (!strcmp(value, "Federal-gov"))
                     return 3;
-                else if (!strcmp(value, "housemaid"))
+                if (!strcmp(value, "Local-gov"))
                     return 4;
-                else if (!strcmp(value, "entrepreneur"))
+                if (!strcmp(value, "State-gov"))
                     return 5;
-                else if (!strcmp(value, "student"))
+                if (!strcmp(value, "Without-pay"))
                     return 6;
-                else if (!strcmp(value, "blue-collar"))
+                if (!strcmp(value, "Never-worked"))
                     return 7;
-                else if (!strcmp(value, "self-employed"))
-                    return 8;
-                else if (!strcmp(value, "retired"))
-                    return 9;
-                else if (!strcmp(value, "technician"))
-                    return 10;
-                else if (!strcmp(value, "services"))
-                    return 11;
-                break;
-            case 2:
-                if (!strcmp(value, "married"))
-                    return 0;
-                else if (!strcmp(value, "divorced"))
-                    return 1;
-                else if (!strcmp(value, "single"))
-                    return 2;
                 break;
             case 3:
-                if (!strcmp(value, "unknown"))
+                if (!strcmp(value, "Bachelors"))
                     return 0;
-                else if (!strcmp(value, "secondary"))
+                if (!strcmp(value, "Some-college"))
                     return 1;
-                else if (!strcmp(value, "primary"))
+                if (!strcmp(value, "11th"))
                     return 2;
-                else if (!strcmp(value, "tertiary"))
+                if (!strcmp(value, "HS-grad"))
                     return 3;
+                if (!strcmp(value, "Prof-school"))
+                    return 4;
+                if (!strcmp(value, "Assoc-acdm"))
+                    return 5;
+                if (!strcmp(value, "Assoc-voc"))
+                    return 6;
+                if (!strcmp(value, "9th"))
+                    return 7;
+                if (!strcmp(value, "7th-8th"))
+                    return 8;
+                if (!strcmp(value, "12th"))
+                    return 9;
+                if (!strcmp(value, "Masters"))
+                    return 10;
+                if (!strcmp(value, "1st-4th"))
+                    return 11;
+                if (!strcmp(value, "10th"))
+                    return 12;
+                if (!strcmp(value, "Doctorate"))
+                    return 13;
+                if (!strcmp(value, "5th-6th"))
+                    return 14;
+                if (!strcmp(value, "Preschool"))
+                    return 15;
                 break;
-            case 4:
-                if (!strcmp(value, "yes"))
+            case 5:
+                if (!strcmp(value, "Married-civ-spouse"))
                     return 0;
-                else if (!strcmp(value, "no"))
+                if (!strcmp(value, "Divorced"))
                     return 1;
+                if (!strcmp(value, "Never-married"))
+                    return 2;
+                if (!strcmp(value, "Separated"))
+                    return 3;
+                if (!strcmp(value, "Widowed"))
+                    return 4;
+                if (!strcmp(value, "Married-spouse-absent"))
+                    return 5;
+                if (!strcmp(value, "Married-AF-spouse"))
+                    return 6;
                 break;
             case 6:
-                if (!strcmp(value, "yes"))
+                if (!strcmp(value, "Tech-support"))
                     return 0;
-                else if (!strcmp(value, "no"))
+                if (!strcmp(value, "Craft-repair"))
                     return 1;
+                if (!strcmp(value, "Other-service"))
+                    return 2;
+                if (!strcmp(value, "Sales"))
+                    return 3;
+                if (!strcmp(value, "Exec-managerial"))
+                    return 4;
+                if (!strcmp(value, "Prof-specialty"))
+                    return 5;
+                if (!strcmp(value, "Handlers-cleaners"))
+                    return 6;
+                if (!strcmp(value, "Machine-op-inspct"))
+                    return 7;
+                if (!strcmp(value, "Adm-clerical"))
+                    return 8;
+                if (!strcmp(value, "Farming-fishing"))
+                    return 9;
+                if (!strcmp(value, "Transport-moving"))
+                    return 10;
+                if (!strcmp(value, "Priv-house-serv"))
+                    return 11;
+                if (!strcmp(value, "Protective-serv"))
+                    return 12;
+                if (!strcmp(value, "Armed-Forces"))
+                    return 13;
                 break;
             case 7:
-                if (!strcmp(value, "yes"))
+                if (!strcmp(value, "Wife"))
                     return 0;
-                else if (!strcmp(value, "no"))
+                if (!strcmp(value, "Own-child"))
                     return 1;
+                if (!strcmp(value, "Husband"))
+                    return 2;
+                if (!strcmp(value, "Not-in-family"))
+                    return 3;
+                if (!strcmp(value, "Other-relative"))
+                    return 4;
+                if (!strcmp(value, "Unmarried"))
+                    return 5;
+                break;
+            case 8:
+                if (!strcmp(value, "White"))
+                    return 0;
+                if (!strcmp(value, "Asian-Pac-Islander"))
+                    return 1;
+                if (!strcmp(value, "Amer-Indian-Eskimo"))
+                    return 2;
+                if (!strcmp(value, "Other"))
+                    return 3;
+                if (!strcmp(value, "Black"))
+                    return 4;
                 break;
             case 9:
-                if (!strcmp(value, "unknown"))
+                if (!strcmp(value, "Female"))
                     return 0;
-                else if (!strcmp(value, "telephone"))
+                if (!strcmp(value, "Male"))
                     return 1;
-                else if (!strcmp(value, "cellular"))
-                    return 2;
                 break;
-            case 10:
-                if (!strcmp(value, "jan"))
+            case 13:
+                if (!strcmp(value, "United-States"))
                     return 0;
-                else if (!strcmp(value, "feb"))
+                if (!strcmp(value, "Cambodia"))
                     return 1;
-                else if (!strcmp(value, "mar"))
+                if (!strcmp(value, "England"))
                     return 2;
-                if (!strcmp(value, "apr"))
+                if (!strcmp(value, "Puerto-Rico"))
                     return 3;
-                else if (!strcmp(value, "may"))
+                if (!strcmp(value, "Canada"))
                     return 4;
-                else if (!strcmp(value, "jun"))
+                if (!strcmp(value, "Germany"))
                     return 5;
-                if (!strcmp(value, "jul"))
+                if (!strcmp(value, "Outlying-US(Guam-USVI-etc)"))
                     return 6;
-                else if (!strcmp(value, "aug"))
+                if (!strcmp(value, "India"))
                     return 7;
-                else if (!strcmp(value, "sep"))
+                if (!strcmp(value, "Japan"))
                     return 8;
-                if (!strcmp(value, "oct"))
+                if (!strcmp(value, "Greece"))
                     return 9;
-                else if (!strcmp(value, "nov"))
+                if (!strcmp(value, "South"))
                     return 10;
-                else if (!strcmp(value, "dec"))
+                if (!strcmp(value, "China"))
                     return 11;
-                break;
-            case 15:
-                if (!strcmp(value, "unknown"))
-                    return 0;
-                else if (!strcmp(value, "other"))
-                    return 1;
-                else if (!strcmp(value, "failure"))
-                    return 2;
-                else if (!strcmp(value, "success"))
-                    return 3;
-                break;
-            case 16:
-                if (!strcmp(value, "yes"))
-                    return 0;
-                else if (!strcmp(value, "no"))
-                    return 1;
+                if (!strcmp(value, "Cuba"))
+                    return 12;
+                if (!strcmp(value, "Iran"))
+                    return 13;
+                if (!strcmp(value, "Honduras"))
+                    return 14;
+                if (!strcmp(value, "Philippines"))
+                    return 15;
+                if (!strcmp(value, "Italy"))
+                    return 16;
+                if (!strcmp(value, "Poland"))
+                    return 17;
+                if (!strcmp(value, "Jamaica"))
+                    return 18;
+                if (!strcmp(value, "Vietnam"))
+                    return 19;
+                if (!strcmp(value, "Mexico"))
+                    return 20;
+                if (!strcmp(value, "Portugal"))
+                    return 21;
+                if (!strcmp(value, "Ireland"))
+                    return 22;
+                if (!strcmp(value, "France"))
+                    return 23;
+                if (!strcmp(value, "Dominican-Republic"))
+                    return 24;
+                if (!strcmp(value, "Laos"))
+                    return 25;
+                if (!strcmp(value, "Ecuador"))
+                    return 26;
+                if (!strcmp(value, "Taiwan"))
+                    return 27;
+                if (!strcmp(value, "Haiti"))
+                    return 28;
+                if (!strcmp(value, "Columbia"))
+                    return 29;
+                if (!strcmp(value, "Hungary"))
+                    return 30;
+                if (!strcmp(value, "Guatemala"))
+                    return 31;
+                if (!strcmp(value, "Nicaragua"))
+                    return 32;
+                if (!strcmp(value, "Scotland"))
+                    return 33;
+                if (!strcmp(value, "Thailand"))
+                    return 34;
+                if (!strcmp(value, "Yugoslavia"))
+                    return 35;
+                if (!strcmp(value, "El-Salvador"))
+                    return 36;
+                if (!strcmp(value, "Trinadad&Tobago"))
+                    return 37;
+                if (!strcmp(value, "Peru"))
+                    return 38;
+                if (!strcmp(value, "Hong"))
+                    return 39;
+                if (!strcmp(value, "Holand-Netherlands"))
+                    return 40;
                 break;
         }
     }
@@ -1126,19 +1227,19 @@ short getMaxDepth(void)
 
     do
     {
-        printf("Select maximum tree depth (1-16)\n\n");
+        printf("Select maximum tree depth\n\n");
         scanf(" %s", userInput);
         printf("\n");
-        if (atoi(userInput) >= 1 && atoi(userInput) <= 16)
-        {
+        //if (atoi(userInput) >= 1 && atoi(userInput) <= 16)
+        //{
             userInputValid = true;
             depth = atoi(userInput);
-        }
-        else
-        {
+        //}
+        //else
+        //{
             printf("Invalid selection\n\n");
-            userInputValid = false;
-        }
+        //    userInputValid = false;
+        //}
     } while (!userInputValid);
     return depth;
 }
@@ -1206,49 +1307,43 @@ void decodeAttribute(short attribute)
             printf("'age'");
             break;
         case 1:
-            printf("'job'");
+            printf("'workclass'");
             break;
         case 2:
-            printf("'marital'");
+            printf("'fnlwgt'");
             break;
         case 3:
             printf("'education'");
             break;
         case 4:
-            printf("'default'");
+            printf("'education-num'");
             break;
         case 5:
-            printf("'balance'");
+            printf("'marital-status'");
             break;
         case 6:
-            printf("'housing'");
+            printf("'occupation'");
             break;
         case 7:
-            printf("'loan'");
+            printf("'relationship'");
             break;
         case 8:
-            printf("'contact'");
+            printf("'race'");
             break;
         case 9:
-            printf("'day'");
+            printf("'sex'");
             break;
         case 10:
-            printf("'month'");
+            printf("'capital-gain'");
             break;
         case 11:
-            printf("'duration'");
+            printf("'capital-loss'");
             break;
         case 12:
-            printf("'campaign'");
+            printf("'hours-per-week'");
             break;
         case 13:
-            printf("'pdays'");
-            break;
-        case 14:
-            printf("'previous'");
-            break;
-        case 15:
-            printf("'poutcome'");
+            printf("'native-country'");
             break;
     }
 }
@@ -1261,10 +1356,10 @@ void decodeValue(short attribute, short value)
             switch (value)
             {
                 case 0:
-                    printf("'above mean'");
+                    printf("'below median'");
                     break;
                 case 1:
-                    printf("'below mean'");
+                    printf("'above median'");
                     break;
             }
             break;
@@ -1272,40 +1367,28 @@ void decodeValue(short attribute, short value)
             switch (value)
             {
                 case 0:
-                    printf("'admin'");
+                    printf("'Private'");
                     break;
                 case 1:
-                    printf("'unknown'");
+                    printf("'Self-emp-not-inc'");
                     break;
                 case 2:
-                    printf("'unemployed'");
+                    printf("'Self-emp-inc'");
                     break;
                 case 3:
-                    printf("'management'");
+                    printf("'Federal-gov'");
                     break;
                 case 4:
-                    printf("'housemaid'");
+                    printf("'Local-gov'");
                     break;
                 case 5:
-                    printf("'entrepreneur'");
+                    printf("'State-gov'");
                     break;
                 case 6:
-                    printf("'student'");
+                    printf("'Without-pay'");
                     break;
                 case 7:
-                    printf("'blue-collar'");
-                    break;
-                case 8:
-                    printf("'self-employed'");
-                    break;
-                case 9:
-                    printf("'retired'");
-                    break;
-                case 10:
-                    printf("'technician'");
-                    break;
-                case 11:
-                    printf("'services'");
+                    printf("'Never-worked'");
                     break;
             }
             break;
@@ -1313,13 +1396,10 @@ void decodeValue(short attribute, short value)
             switch (value)
             {
                 case 0:
-                    printf("'married'");
+                    printf("'below median'");
                     break;
                 case 1:
-                    printf("'divorced'");
-                    break;
-                case 2:
-                    printf("'single'");
+                    printf("'above median'");
                     break;
             }
             break;
@@ -1327,27 +1407,63 @@ void decodeValue(short attribute, short value)
             switch (value)
             {
                 case 0:
-                    printf("'unknown'");
+                    printf("'Bachelors'");
                     break;
                 case 1:
-                    printf("'secondary'");
+                    printf("'Some-college'");
+                    break;
+                case 2:
+                    printf("'11th'");
                     break;
                 case 3:
-                    printf("'primary'");
+                    printf("'HS-grad'");
                     break;
                 case 4:
-                    printf("'tertiary'");
+                    printf("'Prof-school'");
+                    break;
+                case 5:
+                    printf("'Assoc-acdm'");
+                    break;
+                case 6:
+                    printf("'Assoc-voc'");
+                    break;
+                case 7:
+                    printf("'9th'");
+                    break;
+                case 8:
+                    printf("'7th-8th'");
+                    break;
+                case 9:
+                    printf("'12th'");
+                    break;
+                case 10:
+                    printf("'Masters'");
+                    break;
+                case 11:
+                    printf("'1st-4th'");
+                    break;
+                case 12:
+                    printf("'10th'");
+                    break;
+                case 13:
+                    printf("'Doctorate'");
+                    break;
+                case 14:
+                    printf("'5th-6th'");
+                    break;
+                case 15:
+                    printf("'Preschool'");
                     break;
             }
             break;
         case 4:
             switch (value)
-            {
+            {             
                 case 0:
-                    printf("'yes'");
+                    printf("'below median'");
                     break;
                 case 1:
-                    printf("'no'");
+                    printf("'above median'");
                     break;
             }
             break;
@@ -1355,10 +1471,25 @@ void decodeValue(short attribute, short value)
             switch (value)
             {
                 case 0:
-                    printf("'above median'");
+                    printf("Married-civ-spouse'");
                     break;
                 case 1:
-                    printf("'below median'");
+                    printf("'Divorced'");
+                    break;
+                case 2:
+                    printf("'Never-married'");
+                    break;
+                case 3:
+                    printf("'Separated'");
+                    break;
+                case 4:
+                    printf("'Widowed'");
+                    break;
+                case 5:
+                    printf("'Married-spouse-absent'");
+                    break;
+                case 6:
+                    printf("'Married-AF-spouse'");
                     break;
             }
             break;
@@ -1366,10 +1497,46 @@ void decodeValue(short attribute, short value)
             switch (value)
             {
                 case 0:
-                    printf("'yes'");
+                    printf("'Tech-support'");
                     break;
                 case 1:
-                    printf("'no'");
+                    printf("'Craft-repair'");
+                    break;
+                case 2:
+                    printf("'Other-service'");
+                    break;
+                case 3:
+                    printf("'Sales'");
+                    break;
+                case 4:
+                    printf("'Exec-managerial'");
+                    break;
+                case 5:
+                    printf("'Prof-specialty'");
+                    break;
+                case 6:
+                    printf("'Handlers-cleaners'");
+                    break;
+                case 7:
+                    printf("'Machine-op-inspct'");
+                    break;
+                case 8:
+                    printf("'Adm-clerical'");
+                    break;
+                case 9:
+                    printf("'Farming-fishing'");
+                    break;
+                case 10:
+                    printf("'Transport-moving'");
+                    break;
+                case 11:
+                    printf("'Priv-house-serv'");
+                    break;
+                case 12:
+                    printf("'Protective-serv'");
+                    break;
+                case 13:
+                    printf("'Armed-Forces'");
                     break;
             }
             break;
@@ -1377,10 +1544,22 @@ void decodeValue(short attribute, short value)
             switch (value)
             {
                 case 0:
-                    printf("'yes'");
+                    printf("'Wife'");
                     break;
                 case 1:
-                    printf("'no'");
+                    printf("'Own-child'");
+                    break;
+                case 2:
+                    printf("'Husband'");
+                    break;
+                case 3:
+                    printf("'Not-in-family'");
+                    break;
+                case 4:
+                    printf("'Other-relative'");
+                    break;
+                case 5:
+                    printf("'Unmarried'");
                     break;
             }
             break;
@@ -1388,13 +1567,19 @@ void decodeValue(short attribute, short value)
             switch (value)
             {
                 case 0:
-                    printf("'unknown'");
+                    printf("'White'");
                     break;
                 case 1:
-                    printf("'telephone'");
+                    printf("'Asian-Pac-Islander'");
                     break;
                 case 2:
-                    printf("'cellular'");
+                    printf("'Amer-Indian-Eskimo'");
+                    break;
+                case 3:
+                    printf("'Other'");
+                    break;
+                case 4:
+                    printf("'Black'");
                     break;
             }
             break;
@@ -1402,10 +1587,10 @@ void decodeValue(short attribute, short value)
             switch (value)
             {
                 case 0:
-                    printf("'above median'");
+                    printf("'Female'");
                     break;
                 case 1:
-                    printf("'below median'");
+                    printf("'Male'");
                     break;
             }
             break;
@@ -1413,40 +1598,10 @@ void decodeValue(short attribute, short value)
             switch (value)
             {
                 case 0:
-                    printf("'jan'");
+                    printf("'below median'");
                     break;
                 case 1:
-                    printf("'feb'");
-                    break;
-                case 2:
-                    printf("'mar'");
-                    break;
-                case 3:
-                    printf("'apr'");
-                    break;
-                case 4:
-                    printf("'may'");
-                    break;
-                case 5:
-                    printf("'jun'");
-                    break;
-                case 6:
-                    printf("'jul'");
-                    break;
-                case 7:
-                    printf("'aug'");
-                    break;
-                case 8:
-                    printf("'sep'");
-                    break;
-                case 9:
-                    printf("'oct'");
-                    break;
-                case 10:
-                    printf("'nov'");
-                    break;
-                case 11:
-                    printf("'dec'");
+                    printf("'above median'");
                     break;
             }
             break;
@@ -1454,10 +1609,10 @@ void decodeValue(short attribute, short value)
             switch (value)
             {
                 case 0:
-                    printf("'above median'");
+                    printf("'below median'");
                     break;
                 case 1:
-                    printf("'below median'");
+                    printf("'above median'");
                     break;
             }
             break;
@@ -1465,10 +1620,10 @@ void decodeValue(short attribute, short value)
             switch (value)
             {
                 case 0:
-                    printf("'above median'");
+                    printf("'below median'");
                     break;
                 case 1:
-                    printf("'below median'");
+                    printf("'above median'");
                     break;
             }
             break;
@@ -1476,38 +1631,127 @@ void decodeValue(short attribute, short value)
             switch (value)
             {
                 case 0:
-                    printf("'above median'");
+                    printf("'United-States'");
                     break;
                 case 1:
-                    printf("'below median'");
-                    break;
-            }
-            break;
-        case 14:
-            switch (value)
-            {
-                case 0:
-                    printf("'above median'");
-                    break;
-                case 1:
-                    printf("'below median'");
-                    break;
-            }
-            break;
-        case 15:
-            switch (value)
-            {
-                case 0:
-                    printf("'unknown'");
-                    break;
-                case 1:
-                    printf("'other'");
+                    printf("'Cambodia'");
                     break;
                 case 2:
-                    printf("'failure'");
+                    printf("'England'");
                     break;
                 case 3:
-                    printf("success");
+                    printf("'Puerto-Rico'");
+                    break;
+                case 4:
+                    printf("'Canada'");
+                    break;
+                case 5:
+                    printf("'Germany'");
+                    break;
+                case 6:
+                    printf("'Outlying-US(Guam-USVI-etc)'");
+                    break;
+                case 7:
+                    printf("'India'");
+                    break;
+                case 8:
+                    printf("'Japan'");
+                    break;
+                case 9:
+                    printf("'Greece'");
+                    break;
+                case 10:
+                    printf("'South'");
+                    break;
+                case 11:
+                    printf("'China'");
+                    break;
+                case 12:
+                    printf("'Cuba'");
+                    break;
+                case 13:
+                    printf("'Iran'");
+                    break;
+                case 14:
+                    printf("'Honduras'");
+                    break;
+                case 15:
+                    printf("'Philippines'");
+                    break;
+                case 16:
+                    printf("'Italy'");
+                    break;
+                case 17:
+                    printf("'Poland'");
+                    break;
+                case 18:
+                    printf("'Jamaica'");
+                    break;
+                case 19:
+                    printf("'Vietnam'");
+                    break;
+                case 20:
+                    printf("'Mexico'");
+                    break;
+                case 21:
+                    printf("'Portugal'");
+                    break;
+                case 22:
+                    printf("'Ireland'");
+                    break;
+                case 23:
+                    printf("'France'");
+                    break;
+                case 24:
+                    printf("'Dominican-Republic'");
+                    break;
+                case 25:
+                    printf("'Laos'");
+                    break;
+                case 26:
+                    printf("'Ecuador'");
+                    break;
+                case 27:
+                    printf("'Taiwan'");
+                    break;
+                case 28:
+                    printf("'Haiti'");
+                    break;
+                case 29:
+                    printf("'Columbia'");
+                    break;
+                case 30:
+                    printf("'Hungary'");
+                    break;
+                case 31:
+                    printf("'Guatemala'");
+                    break;
+                case 32:
+                    printf("'Nicaragua'");
+                    break;
+                case 33:
+                    printf("'Scotland'");
+                    break;
+                case 34:
+                    printf("'Thailand'");
+                    break;
+                case 35:
+                    printf("'Yugoslavia'");
+                    break;
+                case 36:
+                    printf("'El-Salvador'");
+                    break;
+                case 37:
+                    printf("'Trinadad&Tobago'");
+                    break;
+                case 38:
+                    printf("'Peru'");
+                    break;
+                case 39:
+                    printf("'Hong'");
+                    break;
+                case 40:
+                    printf("'Holand-Netherlands'");
                     break;
             }
             break;
@@ -1519,10 +1763,10 @@ void decodeLabel(short label)
     switch (label)
     {
         case 0:
-            printf("'yes'");
+            printf("'<= 50k'");
             break;
         case 1:
-            printf("'no'");
+            printf("'> 50k'");
             break;
     }
 }
