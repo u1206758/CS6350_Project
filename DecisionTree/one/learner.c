@@ -133,7 +133,7 @@
 */
 short numValues[NUM_ATTRIBUTES] = {2, 8, 2, 16, 2, 7, 14, 6, 5, 2, 2, 2, 2, 41};
 //Precalculated thresholds (medians) of numerical attributes
-float thresholds[NUM_ATTRIBUTES] = {};
+float thresholds[NUM_ATTRIBUTES] = {37, 0, 177299.5, 0, 10, 0, 0, 0, 0, 0, 0, 0, 40, 0};
 bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, false, false, false, true, true, true, false};
 #define MAX_VAL 40 
 #define MAX_BRANCH 5000
