@@ -12,7 +12,7 @@ int countEntries(char fileName[]);
 int importData(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances, int numAttributes);
 int importTree(char fileName[], int tree[][17], int numInstances, int numAttributes);
 int valueToInt(char* value, int attribute);
-
+void export_submission(int myLabels[], int numInstances)
 typedef struct
 {
     int id;
@@ -232,7 +232,7 @@ int importTree(char fileName[], int tree[][17], int numInstances, int numAttribu
 }
 
 //Convert value strings from input dataset to integers
-int valueToInt(char* value, short attribute)
+int valueToInt(char* value, int attribute)
 {
     if (attribute == -2)
     {
@@ -493,4 +493,27 @@ int valueToInt(char* value, short attribute)
         }
     }
     return -99;
+}
+
+void export_submission(int myLabels[], int numInstances)
+{
+    printf("\nEnter name of file to export submission to:\n\n");
+    char name[50];
+    scanf("%s", name);
+    FILE *outputFile = fopen(name, "w");
+    if (outputFile == NULL)
+    {
+        printf("Error opening file");
+        return;
+    }
+
+    fprintf(outputFile, "ID,Prediction\n");
+    
+    for (short i = 0; i < numInstances; i++)
+    {
+        fprintf(outputFile, "%d,%d\n", i, myLabels[i]);
+    }
+
+    fclose(outputFile);
+    return;
 }
