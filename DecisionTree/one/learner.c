@@ -1,5 +1,5 @@
-//This program implements a decision tree learning algorithm for the car evaluation task in HW1 part 2 problem 2.
-//Users can select information gain, majority error, or gini index, and optionally set a maximum depth from 1 to 6.
+//This program implements a decision tree learning algorithm for the salary evaluation task for the Kaggle competition.
+//Users can select information gain, majority error, or gini index, and set a maximum depth.
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -7,81 +7,207 @@
 #include <stdbool.h>
 #include <math.h>
 
-#define NUM_I 1000
-#define NUM_LABELS 4
-#define NUM_ATTRIBUTES 6
-int numValues[NUM_ATTRIBUTES] = {4, 4, 4, 3, 3, 3};
-#define MAX_VAL 4 
-#define MAX_BRANCH 1000
+#define NUM_I 25000 //25000 instances in the training set
+#define NUM_LABELS 2 //Binary label
+#define NUM_ATTRIBUTES 14 //14 attributes
+/* 
+    Attributes & values
+    0: age
+        continuous -> binary 0 = <= median threshold
+    1: workclass
+        0: Private
+        1: Self-emp-not-inc
+        2: Self-emp-inc
+        3: Federal-gov
+        4: Local-gov
+        5: State-gov
+        6: Without-pay
+        7: Never-worked
+    2: fnlwgt
+        continuous -> binary 0 = <= median threshold
+    3: education
+        0: Bachelors
+        1: Some-college
+        2: 11th
+        3: HS-grad
+        4: Prof-school
+        5: Assoc-acdm
+        6: Assoc-voc
+        7: 9th
+        8: 7th-8th
+        9: 12th
+        10: Masters
+        11: 1st-4th
+        12: 10th
+        13: Doctorate
+        14: 5-th-6th
+        15: Preschool
+    4: education-num
+        continuous -> binary 0 = <= median threshold
+    5: marital-status
+        0: Married-civ-spouse
+        1: Divorced
+        2: Never-married
+        3: Separated
+        4: Widowed
+        5: Married-spouse-absent
+        6: Married-AF-spouse
+    6: occupation
+        0: Tech-support
+        1: Craft-repair
+        2: Other-service
+        3: Sales
+        4: Exec-managerial
+        5: Prof-specialty
+        6: Handlers-cleaners
+        7: Machine-op-inspct
+        8: Adm-clerical
+        9: Farming-fishing
+        10: Transport-moving
+        11: Priv-house-serv
+        12: Protective-serv
+        13: Armed-Forces
+    7: relationship
+        0: Wife
+        1: Own-child
+        2: Husband
+        3: Not-in-family
+        4: Other-relative
+        5: Unmarried
+    8: race
+        0: White
+        1: Asian-Pac-Islander
+        2: Amer-Indian-Eskimo
+        3: Other
+        4: Black
+    9: sex
+        0: Female
+        1: Male
+    10: capital-gain
+        continuous -> binary 0 = <= median threshold
+    11: capital-loss
+        continuous -> binary 0 = <= median threshold
+    12: hours-per-week
+        continuous -> binary 0 = <= median threshold
+    13: native-country
+        0: United-States
+        1: Cambodia
+        2: England
+        3: Puerto-Rico
+        4: Canada
+        5: Germany
+        6: Outlying-US(Guam-USVI-etc)
+        7: India
+        8: Japan
+        9: Greece
+        10: South
+        11: China
+        12: Cuba
+        13: Iran
+        14: Honduras
+        15: Philippines
+        16: Italy
+        17: Poland
+        18: Jamaica
+        19: Vietnam
+        20: Mexico
+        21: Portugal
+        22: Ireland
+        23: France
+        24: Dominican-Republic
+        25: Laos
+        26: Ecuador
+        27: Taiwan
+        28: Haiti
+        29: Columbia
+        30: Hungary
+        31: Guatemala
+        32: Nicaragua
+        33: Scotland
+        34: Thailand
+        35: Yugoslavia
+        36: El-Salvador
+        37: Trinadad&Tobago
+        38: Peru
+        39: Hong
+        40: Holand-Netherlands
+*/
+short numValues[NUM_ATTRIBUTES] = {2, 8, 2, 16, 2, 7, 14, 6, 5, 2, 2, 2, 2, 41};
+//Precalculated thresholds (medians) of numerical attributes
+float thresholds[NUM_ATTRIBUTES] = {};
+bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, false, false, false, true, true, true, false};
+#define MAX_VAL 40 
+#define MAX_BRANCH 5000
 
-int splitLeaf(short currentInstances[NUM_I], int data[][NUM_ATTRIBUTES+1], int numInstances, int method, bool parentAttribute[NUM_ATTRIBUTES], int branchIndex);
-float ig_initial(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances);
-float ig_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances, int attribute);
-float me_initial(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances);
-float me_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances, int attribute);
-float gini_initial(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances);
-float gini_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances, int attribute);
+short splitLeaf(short currentInstances[NUM_I], short data[][NUM_ATTRIBUTES+1], short numInstances, short method, bool parentAttribute[NUM_ATTRIBUTES], short branchIndex);
+float ig_initial(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances);
+float ig_gain(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances, short attribute);
+float me_initial(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances);
+float me_gain(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances, short attribute);
+float gini_initial(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances);
+float gini_gain(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances, short attribute);
 
-int countData(void);
-int importData(int data[][NUM_ATTRIBUTES+1], int numInstances);
-int valueToInt(char* value, int attribute);
-int getMethod(void);
-int getMaxDepth(void);
+short countData(void);
+short importData(short data[][NUM_ATTRIBUTES+1], short numInstances);
+short valueToInt(char* value, short attribute);
+short getMethod(void);
+short getMaxDepth(void);
 
 typedef struct
 {
     bool active;    //Whether this branch slot is used by the tree
-    int level;      //The depth in the tree this branch is on
-    int parent;     //The ID of the parent branch
-    int leaf[MAX_VAL];    //The IDs of the leaves of this branch
-    int attribute;  //The attribute this branch is split on (if any)
-    int value;      //The value a leaf represents when split from parent branch
-    int label;      //The label for this branch (-1 no label, -2 all children labelled)
+    short level;      //The depth in the tree this branch is on
+    short parent;     //The ID of the parent branch
+    short leaf[MAX_VAL];    //The IDs of the leaves of this branch
+    short attribute;  //The attribute this branch is split on (if any)
+    short value;      //The value a leaf represents when split from parent branch
+    short label;      //The label for this branch (-99 no label, -2 all children labelled)
 }Branch;
 
-void printTree(Branch tree[], int maxBranches);
-void decodeAttribute(int attribute);
-void decodeValue(int attribute, int value);
-void decodeLabel(int label);
-void exportTree(Branch tree[], int maxBranches);
+void printTree(Branch tree[], short maxBranches);
+void decodeAttribute(short attribute);
+void decodeValue(short attribute, short value);
+void decodeLabel(short label);
+void exportTree(Branch tree[], short maxBranches);
 
-int getNextID(Branch tree[], int maxBranches);
+short getNextID(Branch tree[], short maxBranches);
 
 int main()
 {
     //Import data from CSV
-    int numInstances = countData();
-    if (numInstances == -1)
+    short numInstances = countData();
+    if (numInstances == -99)
     {
         return 1;
     }
-    int data[numInstances][NUM_ATTRIBUTES+1];
+    short data[numInstances][NUM_ATTRIBUTES+1];
     importData(data, numInstances);
-    int method = getMethod();
-    int maxDepth = getMaxDepth();
-    int maxBranches = MAX_BRANCH;
+    short method = getMethod();
+    short maxDepth = getMaxDepth();
+    short maxBranches = MAX_BRANCH;
     Branch tree[maxBranches];
-    int currentLevel = 1;
+    short currentLevel = 1;
     bool allDone = false;
 
     //Initialize all possible branches
-    for (int i = 0; i < maxBranches; i++)
+    for (short i = 0; i < maxBranches; i++)
     {
         tree[i].active = false;
-        tree[i].level = -1;
-        tree[i].parent = -1;
-        for (int j = 0; j < MAX_VAL; j++)
-            tree[i].leaf[j] = -1;
-        tree[i].attribute = -1;
-        tree[i].value = -1;
-        tree[i].label = -1;
+        tree[i].level = -99;
+        tree[i].parent = -99;
+        for (short j = 0; j < MAX_VAL; j++)
+            tree[i].leaf[j] = -99;
+        tree[i].attribute = -99;
+        tree[i].value = -99;
+        tree[i].label = -99;
     }
     //Initialize head of tree
-    short currentInstances[maxBranches][numInstances];
+    //short currentInstances[maxBranches][numInstances];
+    short (*currentInstances)[numInstances] = malloc(sizeof(*currentInstances) * maxBranches);
 
-    for (int i = 0; i < maxBranches; i++)
+    for (short i = 0; i < maxBranches; i++)
     {
-        for (int j = 0; j < numInstances; j++)
+        for (short j = 0; j < numInstances; j++)
         {
             if (i == 0)
             {
@@ -89,43 +215,44 @@ int main()
             }
             else
             {
-                currentInstances[i][j] = -1;
+                currentInstances[i][j] = -99;
             }
         }
     }
-    int branchIndex = 0;
+    short branchIndex = 0;
     tree[0].active = true;
     tree[0].level = 1;
     while(!allDone)
     {
-        int lastLabel = -1;
+       // printf("BI: %d, d: %d, a: %d\n", branchIndex, tree[branchIndex].level, tree[tree[branchIndex].parent].attribute);
+        short lastLabel = -99;
         bool readyToLabel = true;
         bool allLeavesLabelled = true;
         bool hasLeaves = false;
-        int labelCount[NUM_LABELS];
-        for (int i = 0; i < NUM_LABELS; i++)
+        short labelCount[NUM_LABELS];
+        for (short i = 0; i < NUM_LABELS; i++)
         {
             labelCount[i] = 0;
         }
-        int maxLabelCount = 0;
-        int maxLabel = -1;
+        short maxLabelCount = 0;
+        short maxLabel = -99;
         bool parentAttribute[NUM_ATTRIBUTES];
-        int parentValue[NUM_ATTRIBUTES];
-        for (int i = 0; i < NUM_ATTRIBUTES; i++)
+        short parentValue[NUM_ATTRIBUTES];
+        for (short i = 0; i < NUM_ATTRIBUTES; i++)
         {
             parentAttribute[i] = false;
-            parentValue[i] = -1;
+            parentValue[i] = -99;
         }
 
         //If current branch/leaf is at max level
         if (tree[branchIndex].level > maxDepth)
         {
             //find most common label for current value
-            for (int i = 0; i < numInstances; i++)
+            for (short i = 0; i < numInstances; i++)
             {
                 if (data[i][tree[tree[branchIndex].parent].attribute] == tree[branchIndex].value)
                 {
-                    for (int j = 0; j < NUM_LABELS; j++)
+                    for (short j = 0; j < NUM_LABELS; j++)
                     {
                         if (data[i][NUM_ATTRIBUTES] == j)
                         {
@@ -134,7 +261,7 @@ int main()
                     }
                 }
             }
-            for (int i = 0; i < NUM_LABELS; i++)
+            for (short i = 0; i < NUM_LABELS; i++)
             {
                 if (labelCount[i] > maxLabelCount)
                 {
@@ -143,19 +270,19 @@ int main()
                 }
             }
             //If branch value has no instances
-            if (maxLabel == -1)
+            if (maxLabel == -99)
             {
-                for (int i = 0; i < NUM_LABELS; i++)
+                for (short i = 0; i < NUM_LABELS; i++)
                 {
                     labelCount[i] = 0;
                 }
                 maxLabelCount = 0;
                 //find most common label for current value
-                for (int i = 0; i < numInstances; i++)
+                for (short i = 0; i < numInstances; i++)
                 {
                     if (data[i][tree[tree[tree[branchIndex].parent].parent].attribute] == tree[tree[branchIndex].parent].value)
                     {
-                        for (int j = 0; j < NUM_LABELS; j++)
+                        for (short j = 0; j < NUM_LABELS; j++)
                         {
                             if (data[i][NUM_ATTRIBUTES] == j)
                             {
@@ -164,7 +291,7 @@ int main()
                         }
                     }
                 }
-                for (int i = 0; i < NUM_LABELS; i++)
+                for (short i = 0; i < NUM_LABELS; i++)
                 {
                     if (labelCount[i] > maxLabelCount)
                     {
@@ -177,10 +304,10 @@ int main()
             tree[branchIndex].label = maxLabel;
 
             //Check if all leaves of parent branch are labelled
-            for (int j = 0; j < numValues[tree[tree[branchIndex].parent].attribute]; j++)
+            for (short j = 0; j < numValues[tree[tree[branchIndex].parent].attribute]; j++)
             {
                 //If not, set flag false
-                if (tree[tree[tree[branchIndex].parent].leaf[j]].label == -1)
+                if (tree[tree[tree[branchIndex].parent].leaf[j]].label == -99)
                 {
                     allLeavesLabelled = false;
                     break;
@@ -198,13 +325,13 @@ int main()
         else
         {
             //Check if all instances have same label
-            for (int i = 0; i < numInstances; i++)
+            for (short i = 0; i < numInstances; i++)
             {   
                 //If current instance is in current set
-                if (currentInstances[branchIndex][i] != -1)
+                if (currentInstances[branchIndex][i] != -99)
                 {
                     //Check if all labels are the same
-                    if (lastLabel == -1)
+                    if (lastLabel == -99)
                     {
                         lastLabel = data[i][NUM_ATTRIBUTES];
                     }
@@ -227,14 +354,14 @@ int main()
             {
                 //Label branch
                 //If branch value has no instances
-                if (lastLabel == -1)
+                if (lastLabel == -99)
                 {
                     //find most common label for current value
-                    for (int i = 0; i < numInstances; i++)
+                    for (short i = 0; i < numInstances; i++)
                     {
                         if (data[i][tree[tree[tree[branchIndex].parent].parent].attribute] == tree[tree[branchIndex].parent].value)
                         {
-                            for (int j = 0; j < NUM_LABELS; j++)
+                            for (short j = 0; j < NUM_LABELS; j++)
                             {
                                 if (data[i][NUM_ATTRIBUTES] == j)
                                 {
@@ -243,7 +370,7 @@ int main()
                             }
                         }
                     }
-                    for (int i = 0; i < NUM_LABELS; i++)
+                    for (short i = 0; i < NUM_LABELS; i++)
                     {
                         if (labelCount[i] > maxLabelCount)
                         {
@@ -266,10 +393,10 @@ int main()
                 }
             
                 //Check if all leaves of current branch are labelled
-                for (int j = 0; j < numValues[tree[branchIndex].attribute]; j++)
+                for (short j = 0; j < numValues[tree[branchIndex].attribute]; j++)
                 {
                     //If not, set index to next unlabelled leaf
-                    if (tree[tree[branchIndex].leaf[j]].label == -1)
+                    if (tree[tree[branchIndex].leaf[j]].label == -99)
                     {
                         allLeavesLabelled = false;
                         branchIndex = tree[branchIndex].leaf[j];
@@ -286,9 +413,9 @@ int main()
             else //branch is not ready to label
             {
                 //Check if leaves exist on this branch
-                for (int i = 0; i < numValues[tree[branchIndex].attribute]; i++)
+                for (short i = 0; i < numValues[tree[branchIndex].attribute]; i++)
                 {
-                    if (tree[branchIndex].leaf[i] != -1)
+                    if (tree[branchIndex].leaf[i] != -99)
                         {
                             hasLeaves = true;
                             break;
@@ -297,10 +424,10 @@ int main()
                 if (hasLeaves)
                 {
                     //Check if all leaves are labelled
-                    for (int i = 0; i < numValues[tree[branchIndex].attribute]; i++)
+                    for (short i = 0; i < numValues[tree[branchIndex].attribute]; i++)
                     {
                         //if all are not labelled, set index to next unlabeleld
-                        if (tree[tree[branchIndex].leaf[i]].label == -1)
+                        if (tree[tree[branchIndex].leaf[i]].label == -99)
                         {
                             allLeavesLabelled = false;
                             branchIndex = tree[branchIndex].leaf[i];
@@ -324,8 +451,8 @@ int main()
                 else //no leaves, not ready to label, need to split
                 {
                     //Find all attributes already split in the current path
-                    int tempIndex = branchIndex;
-                    while (tempIndex > -1)
+                    short tempIndex = branchIndex;
+                    while (tempIndex > -99)
                     {
                         if (tempIndex > 0)
                         {
@@ -337,10 +464,10 @@ int main()
                     //split
                     tree[branchIndex].attribute = splitLeaf(currentInstances[branchIndex], data, numInstances, method, parentAttribute, branchIndex);
                     //create leaves & assign values
-                    for (int i = 0; i < numValues[tree[branchIndex].attribute]; i++)
+                    for (short i = 0; i < numValues[tree[branchIndex].attribute]; i++)
                     {
                         tree[branchIndex].leaf[i] = getNextID(tree, maxBranches);
-                        if (tree[branchIndex].leaf[i] == -1)
+                        if (tree[branchIndex].leaf[i] == -99)
                         {
                             printf("ERROR: out of branches!\n");
                             printf("%d\n", branchIndex);
@@ -351,16 +478,16 @@ int main()
                         tree[tree[branchIndex].leaf[i]].parent = branchIndex;
                         tree[tree[branchIndex].leaf[i]].level = tree[branchIndex].level + 1;
                         //for each instance
-                        for (int j = 0; j < numInstances; j++)
+                        for (short j = 0; j < numInstances; j++)
                         {
                             //if the instance value mathing the leaf value for the parent attribute is also present in parent subset
-                            if (data[j][tree[branchIndex].attribute] == i && currentInstances[branchIndex][j] != -1)
+                            if (data[j][tree[branchIndex].attribute] == i && currentInstances[branchIndex][j] != -99)
                             {
                                 currentInstances[tree[branchIndex].leaf[i]][j] = j;
                             }
                             else
                             {
-                                currentInstances[tree[branchIndex].leaf[i]][j] = -1;
+                                currentInstances[tree[branchIndex].leaf[i]][j] = -99;
                             }
                         }
                     }
@@ -382,13 +509,13 @@ int main()
     return 0;
 }
 
-int splitLeaf(short currentInstances[NUM_I], int data[][NUM_ATTRIBUTES+1], int numInstances, int method, bool parentAttribute[NUM_ATTRIBUTES], int branchIndex)
+short splitLeaf(short currentInstances[NUM_I], short data[][NUM_ATTRIBUTES+1], short numInstances, short method, bool parentAttribute[NUM_ATTRIBUTES], short branchIndex)
 {
     //Main algorithm loop
     float initialInformation;
     float attributeGain[NUM_ATTRIBUTES];
-    float bestGain = -1;
-    int bestAttribute = -1;
+    float bestGain = -99;
+    short bestAttribute = -99;
     
     //Calculate initial label information
     switch (method)
@@ -406,7 +533,7 @@ int splitLeaf(short currentInstances[NUM_I], int data[][NUM_ATTRIBUTES+1], int n
             initialInformation = gini_initial(currentInstances, data, numInstances);
             break;
     }
-    for (int i = 0; i < NUM_ATTRIBUTES; i++)
+    for (short i = 0; i < NUM_ATTRIBUTES; i++)
     {
         if (!parentAttribute[i])
         {
@@ -433,7 +560,7 @@ int splitLeaf(short currentInstances[NUM_I], int data[][NUM_ATTRIBUTES+1], int n
     }
     
     //Find max gain attribute
-    for (int i = 0; i < NUM_ATTRIBUTES; i++)
+    for (short i = 0; i < NUM_ATTRIBUTES; i++)
     {
         if (initialInformation - attributeGain[i] > bestGain)
         {
@@ -445,22 +572,22 @@ int splitLeaf(short currentInstances[NUM_I], int data[][NUM_ATTRIBUTES+1], int n
 }
 
 //Calculate entropy on labels for current set of instances
-float ig_initial(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances)
+float ig_initial(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances)
 {
     float totalCount = 0;
     float labelCount[NUM_LABELS];
     float init = 0;
-    for (int i = 0; i < NUM_LABELS; i ++)
+    for (short i = 0; i < NUM_LABELS; i ++)
     {
         labelCount[i] = 0;
     }
 
-    for (int i = 0; i < numInstances; i++)
+    for (short i = 0; i < numInstances; i++)
     {
-        if (subset[i] != -1)
+        if (subset[i] != -99)
         {
             totalCount++;
-            for (int j = 0; j < NUM_LABELS; j++)
+            for (short j = 0; j < NUM_LABELS; j++)
             {
                 if (dataset[i][NUM_ATTRIBUTES] == j)
                 {
@@ -470,7 +597,7 @@ float ig_initial(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstanc
         }
     }
 
-    for (int i = 0; i < NUM_LABELS; i++)
+    for (short i = 0; i < NUM_LABELS; i++)
     {
         if (labelCount[i] != 0)
         {
@@ -482,7 +609,7 @@ float ig_initial(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstanc
 }
 
 //Calculate weighted entropy gain for each attribute in current instance set
-float ig_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances, int attribute)
+float ig_gain(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances, short attribute)
 {
     float totalCount = 0;
     float valueCount[numValues[attribute]];
@@ -491,10 +618,10 @@ float ig_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances,
     float weightedEntropy = 0;
 
     //Initialize values to zero
-    for (int j = 0; j < numValues[attribute]; j++)
+    for (short j = 0; j < numValues[attribute]; j++)
     {
         valueCount[j] = 0;
-        for (int k = 0; k < NUM_LABELS; k++)
+        for (short k = 0; k < NUM_LABELS; k++)
         {
             labelCount[j][k] = 0;
         }
@@ -502,18 +629,18 @@ float ig_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances,
     }
 
     //for each instance that is in the current subset
-    for (int i = 0; i < numInstances; i++)
+    for (short i = 0; i < numInstances; i++)
     {
-        if (subset[i] != -1)
+        if (subset[i] != -99)
         {
             //count values for each attribute and their label
-            for (int j = 0; j < numValues[attribute]; j++)
+            for (short j = 0; j < numValues[attribute]; j++)
             {
                 if (dataset[i][attribute] == j)
                 {
                     valueCount[j]++;
                     totalCount++;
-                    for (int k = 0; k < NUM_LABELS; k++)
+                    for (short k = 0; k < NUM_LABELS; k++)
                     {
                         if (dataset[i][NUM_ATTRIBUTES] == k)
                         {
@@ -527,9 +654,9 @@ float ig_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances,
     
 
 
-    for (int j = 0; j < numValues[attribute]; j++)
+    for (short j = 0; j < numValues[attribute]; j++)
     {
-        for (int k = 0; k < NUM_LABELS; k++)
+        for (short k = 0; k < NUM_LABELS; k++)
         {
             if (labelCount[j][k] == 0)
             {
@@ -546,20 +673,20 @@ float ig_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances,
 }
 
 //Calculate majority error on labels for current set of instances
-float me_initial(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances)
+float me_initial(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances)
 {
     float totalCount = 0;
     float labelCount[NUM_LABELS];
-    for (int i = 0; i < NUM_LABELS; i++)
+    for (short i = 0; i < NUM_LABELS; i++)
     {
         labelCount[i] = 0;
     }
-    for (int i = 0; i < numInstances; i++)
+    for (short i = 0; i < numInstances; i++)
     {
-        if (subset[i] != -1)
+        if (subset[i] != -99)
         {
             totalCount++;
-            for (int j = 0; j < NUM_LABELS; j++)
+            for (short j = 0; j < NUM_LABELS; j++)
             {
                 if (dataset[i][NUM_ATTRIBUTES] == j)
             {
@@ -569,9 +696,9 @@ float me_initial(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstanc
         }
     }
 
-    float max = -1;
+    float max = -99;
 
-    for (int j = 0; j < NUM_LABELS; j++)
+    for (short j = 0; j < NUM_LABELS; j++)
     {
         if (labelCount[j] > max)
         {
@@ -582,7 +709,7 @@ float me_initial(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstanc
 }
 
 //Calculate weighted majority error gain for each attribute in current instance set
-float me_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances, int attribute)
+float me_gain(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances, short attribute)
 {
     float totalCount = 0;
     float valueCount[numValues[attribute]];
@@ -591,10 +718,10 @@ float me_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances,
     float weightedme = 0;
 
     //Initialize values to zero
-    for (int j = 0; j < numValues[attribute]; j++)
+    for (short j = 0; j < numValues[attribute]; j++)
     {
         valueCount[j] = 0;
-        for (int k = 0; k < NUM_LABELS; k++)
+        for (short k = 0; k < NUM_LABELS; k++)
         {
             labelCount[j][k] = 0;
         }
@@ -602,18 +729,18 @@ float me_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances,
     }
 
     //for each instance that is in the current subset
-    for (int i = 0; i < numInstances; i++)
+    for (short i = 0; i < numInstances; i++)
     {
-        if (subset[i] != -1)
+        if (subset[i] != -99)
         {
             //count values for each attribute and their label
-            for (int j = 0; j < numValues[attribute]; j++)
+            for (short j = 0; j < numValues[attribute]; j++)
             {
                 if (dataset[i][attribute] == j)
                 {
                     valueCount[j]++;
                     totalCount++;
-                    for (int k = 0; k < NUM_LABELS; k++)
+                    for (short k = 0; k < NUM_LABELS; k++)
                     {
                         if (dataset[i][NUM_ATTRIBUTES] == k)
                         {
@@ -626,12 +753,12 @@ float me_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances,
     }
     
     float max[numValues[attribute]];
-    for (int i = 0; i < numValues[attribute]; i++)
+    for (short i = 0; i < numValues[attribute]; i++)
     {
-        max[i] = -1;
+        max[i] = -99;
     }
 
-    for (int j = 0; j < numValues[attribute]; j++)
+    for (short j = 0; j < numValues[attribute]; j++)
     {
         if (valueCount[j] == 0)
         {
@@ -639,7 +766,7 @@ float me_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances,
         }
         else
         {
-            for (int k = 0; k < NUM_LABELS; k++)
+            for (short k = 0; k < NUM_LABELS; k++)
             {
                 if (labelCount[j][k] > max[j])
                 {
@@ -654,21 +781,21 @@ float me_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances,
 }
 
 //Calculate gini on labels for current set of instances
-float gini_initial(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances)
+float gini_initial(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances)
 {
     float totalCount = 0;
     float labelCount[NUM_LABELS];
     float gini = 0;
-    for (int i = 0; i < NUM_LABELS; i++)
+    for (short i = 0; i < NUM_LABELS; i++)
     {
         labelCount[i] = 0;
     }
-    for (int i = 0; i < numInstances; i++)
+    for (short i = 0; i < numInstances; i++)
     {
-        if (subset[i] != -1)
+        if (subset[i] != -99)
         {
             totalCount++;
-            for (int j = 0; j < NUM_LABELS; j++)
+            for (short j = 0; j < NUM_LABELS; j++)
             {
                 if (dataset[i][NUM_ATTRIBUTES] == j)
                 {
@@ -678,7 +805,7 @@ float gini_initial(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInsta
         }
     }
 
-    for (int i = 0; i < NUM_LABELS; i++)
+    for (short i = 0; i < NUM_LABELS; i++)
     {
         gini += (labelCount[i]/totalCount) * (labelCount[i]/totalCount);
     }
@@ -687,7 +814,7 @@ float gini_initial(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInsta
 }
 
 //Calculate weighted gini gain for each attribute in current instance set
-float gini_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstances, int attribute)
+float gini_gain(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances, short attribute)
 {
     float totalCount = 0;
     float valueCount[numValues[attribute]];
@@ -697,10 +824,10 @@ float gini_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstance
     float weightedGini = 0;
 
     //Initialize values to zero
-    for (int j = 0; j < numValues[attribute]; j++)
+    for (short j = 0; j < numValues[attribute]; j++)
     {
         valueCount[j] = 0;
-        for (int k = 0; k < NUM_LABELS; k++)
+        for (short k = 0; k < NUM_LABELS; k++)
         {
             labelCount[j][k] = 0;
         }
@@ -709,19 +836,19 @@ float gini_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstance
     }
 
     //for each instance that is in the current subset
-    for (int i = 0; i < numInstances; i++)
+    for (short i = 0; i < numInstances; i++)
     {
-        if (subset[i] != -1)
+        if (subset[i] != -99)
         {
             //count values for each attribute and their label
-            for (int j = 0; j < numValues[attribute]; j++)
+            for (short j = 0; j < numValues[attribute]; j++)
             {
 
                 if (dataset[i][attribute] == j)
                 {
                     valueCount[j]++;
                     totalCount++;
-                    for (int k = 0; k < NUM_LABELS; k++)
+                    for (short k = 0; k < NUM_LABELS; k++)
                     {
                         if (dataset[i][NUM_ATTRIBUTES] == k)
                         {
@@ -735,7 +862,7 @@ float gini_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstance
     
 
 
-    for (int j = 0; j < numValues[attribute]; j++)
+    for (short j = 0; j < numValues[attribute]; j++)
     {
         if (valueCount[j] == 0)
         {
@@ -743,7 +870,7 @@ float gini_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstance
         }
         else
         {
-            for (int k = 0; k < NUM_LABELS; k++)
+            for (short k = 0; k < NUM_LABELS; k++)
             {
                 giniIntermediate[j] += (labelCount[j][k]/valueCount[j]) * (labelCount[j][k]/valueCount[j]);
             }
@@ -754,16 +881,16 @@ float gini_gain(short subset[], int dataset[][NUM_ATTRIBUTES+1], int numInstance
     return weightedGini;
 }
 
-int countData(void)
+short countData(void)
 {
-     int count = 0;
+     short count = 0;
 
     //Open input file
     FILE *inputFile = fopen("train.csv", "r");
     if (inputFile == NULL)
     {
         printf("Error opening file");
-        return -1;
+        return -99;
     }
 
     char row[100];
@@ -785,13 +912,13 @@ int countData(void)
     return count;
 }
 
-int importData(int data[][NUM_ATTRIBUTES+1], int numInstances)
+short importData(short data[][NUM_ATTRIBUTES+1], short numInstances)
 {
     FILE *inputFile = fopen("train.csv", "r");
     if (inputFile == NULL)
     {
         printf("Error opening file");
-        return -1;
+        return -99;
     }
 
     char row[100];
@@ -800,7 +927,7 @@ int importData(int data[][NUM_ATTRIBUTES+1], int numInstances)
     //Parse input CSV into data instance struct array
     while (feof(inputFile) != true)
     {
-        for (int i = 0; i < numInstances; i++)
+        for (short i = 0; i < numInstances; i++)
         {
             if (fgets(row, 100, inputFile) == NULL)
             {
@@ -810,7 +937,7 @@ int importData(int data[][NUM_ATTRIBUTES+1], int numInstances)
             else
             {
                 token = strtok(row, ",");
-                for (int j = 0; j < NUM_ATTRIBUTES+1; j++)
+                for (short j = 0; j < NUM_ATTRIBUTES+1; j++)
                 {
                     data[i][j] = valueToInt(token, j);
                     token = strtok(NULL, ",\r\n");
@@ -823,118 +950,147 @@ int importData(int data[][NUM_ATTRIBUTES+1], int numInstances)
 }
 
 //Convert value strings from input dataset to integers
-int valueToInt(char* value, int attribute)
+short valueToInt(char* value, short attribute)
 {
-    /*
-        data[inst][0] - buying
-            vhigh - 0
-            high - 1
-            med - 2
-            low - 3
-        data[]inst[1] - maint
-            vhigh - 0
-            high - 1
-            med - 2
-            low - 3
-        data[inst][2] - doors
-            2 - 0
-            3 - 1
-            4 - 2
-            5more - 3
-        data[inst][3] - persons
-            2 - 0
-            4 - 1
-            more - 2
-        data[inst][4] - lug_boot
-            small - 0
-            med - 1
-            big - 2
-        data[inst][5] - safety
-            low - 0
-            med - 1
-            high - 2
-        data[inst][6] - label
-            unacc - 0
-            acc - 1
-            good - 2
-            vgood - 3
-    */
-
-   switch (attribute)
-   {
-        case 0:
-            if (!strcmp(value, "vhigh"))
-                return 0;
-            else if (!strcmp(value, "high"))
-                return 1;
-            else if (!strcmp(value, "med"))
-                return 2;
-            else if (!strcmp(value, "low"))
-                return 3;
-            break;
-        case 1:
-            if (!strcmp(value, "vhigh"))
-                return 0;
-            else if (!strcmp(value, "high"))
-                return 1;
-            else if (!strcmp(value, "med"))
-                return 2;
-            else if (!strcmp(value, "low"))
-                return 3;
-            break;
-        case 2:
-            if (!strcmp(value, "2"))
-                return 0;
-            else if (!strcmp(value, "3"))
-                return 1;
-            else if (!strcmp(value, "4"))
-                return 2;
-            else if (!strcmp(value, "5more"))
-                return 3;
-            break;
-        case 3:
-            if (!strcmp(value, "2"))
-                return 0;
-            else if (!strcmp(value, "4"))
-                return 1;
-            else if (!strcmp(value, "more"))
-                return 2;
-            break;
-        case 4:
-            if (!strcmp(value, "small"))
-                return 0;
-            else if (!strcmp(value, "med"))
-                return 1;
-            else if (!strcmp(value, "big"))
-                return 2;
-            break;
-        case 5:
-            if (!strcmp(value, "low"))
-                return 0;
-            else if (!strcmp(value, "med"))
-                return 1;
-            else if (!strcmp(value, "high"))
-                return 2;
-            break;
-        case 6:
-            if (!strcmp(value, "unacc"))
-                return 0;
-            else if (!strcmp(value, "acc"))
-                return 1;
-            else if (!strcmp(value, "good"))
-                return 2;
-            else if (!strcmp(value, "vgood"))
-                return 3;
-            break;
-   }
-   return -1;
+    if (isNumeric[attribute])
+    {
+        if (atoi(value) >= thresholds[attribute])
+        {
+            //yes >=
+            return 0;
+        }
+        else
+        {
+            //no <
+            return 1;
+        }
+    }
+    else
+    {
+        switch (attribute)
+        {
+            case 1:
+                if (!strcmp(value, "admin"))
+                    return 0;
+                else if (!strcmp(value, "unknown"))
+                    return 1;
+                else if (!strcmp(value, "unemployed"))
+                    return 2;
+                else if (!strcmp(value, "management"))
+                    return 3;
+                else if (!strcmp(value, "housemaid"))
+                    return 4;
+                else if (!strcmp(value, "entrepreneur"))
+                    return 5;
+                else if (!strcmp(value, "student"))
+                    return 6;
+                else if (!strcmp(value, "blue-collar"))
+                    return 7;
+                else if (!strcmp(value, "self-employed"))
+                    return 8;
+                else if (!strcmp(value, "retired"))
+                    return 9;
+                else if (!strcmp(value, "technician"))
+                    return 10;
+                else if (!strcmp(value, "services"))
+                    return 11;
+                break;
+            case 2:
+                if (!strcmp(value, "married"))
+                    return 0;
+                else if (!strcmp(value, "divorced"))
+                    return 1;
+                else if (!strcmp(value, "single"))
+                    return 2;
+                break;
+            case 3:
+                if (!strcmp(value, "unknown"))
+                    return 0;
+                else if (!strcmp(value, "secondary"))
+                    return 1;
+                else if (!strcmp(value, "primary"))
+                    return 2;
+                else if (!strcmp(value, "tertiary"))
+                    return 3;
+                break;
+            case 4:
+                if (!strcmp(value, "yes"))
+                    return 0;
+                else if (!strcmp(value, "no"))
+                    return 1;
+                break;
+            case 6:
+                if (!strcmp(value, "yes"))
+                    return 0;
+                else if (!strcmp(value, "no"))
+                    return 1;
+                break;
+            case 7:
+                if (!strcmp(value, "yes"))
+                    return 0;
+                else if (!strcmp(value, "no"))
+                    return 1;
+                break;
+            case 9:
+                if (!strcmp(value, "unknown"))
+                    return 0;
+                else if (!strcmp(value, "telephone"))
+                    return 1;
+                else if (!strcmp(value, "cellular"))
+                    return 2;
+                break;
+            case 10:
+                if (!strcmp(value, "jan"))
+                    return 0;
+                else if (!strcmp(value, "feb"))
+                    return 1;
+                else if (!strcmp(value, "mar"))
+                    return 2;
+                if (!strcmp(value, "apr"))
+                    return 3;
+                else if (!strcmp(value, "may"))
+                    return 4;
+                else if (!strcmp(value, "jun"))
+                    return 5;
+                if (!strcmp(value, "jul"))
+                    return 6;
+                else if (!strcmp(value, "aug"))
+                    return 7;
+                else if (!strcmp(value, "sep"))
+                    return 8;
+                if (!strcmp(value, "oct"))
+                    return 9;
+                else if (!strcmp(value, "nov"))
+                    return 10;
+                else if (!strcmp(value, "dec"))
+                    return 11;
+                break;
+            case 15:
+                if (!strcmp(value, "unknown"))
+                    return 0;
+                else if (!strcmp(value, "other"))
+                    return 1;
+                else if (!strcmp(value, "failure"))
+                    return 2;
+                else if (!strcmp(value, "success"))
+                    return 3;
+                break;
+            case 16:
+                if (!strcmp(value, "yes"))
+                    return 0;
+                else if (!strcmp(value, "no"))
+                    return 1;
+                break;
+        }
+    }
+    return -99;
 }
 
-int getMethod(void)
+short getMethod(void)
 {
     char userInput;
     bool userInputValid;
-    int method;
+    short method;
     do 
     {
         printf("Select attribute split method:\n\tInformation gain (I)\n\tMajority error (M)\n\tGini index (G)\n\n");
@@ -962,21 +1118,21 @@ int getMethod(void)
     return method;
 }
 
-int getMaxDepth(void)
+short getMaxDepth(void)
 {
-    char userInput;
+    char userInput[50];
     bool userInputValid;
-    int depth;
+    short depth;
 
     do
     {
-        printf("Select maximum tree depth (1-6)\n\n");
-        scanf(" %c", &userInput);
+        printf("Select maximum tree depth (1-16)\n\n");
+        scanf(" %s", userInput);
         printf("\n");
-        if (userInput >= '1' && userInput <= '6')
+        if (atoi(userInput) >= 1 && atoi(userInput) <= 16)
         {
             userInputValid = true;
-            depth = userInput-48;
+            depth = atoi(userInput);
         }
         else
         {
@@ -987,20 +1143,20 @@ int getMaxDepth(void)
     return depth;
 }
 
-int getNextID(Branch tree[], int maxBranches)
+short getNextID(Branch tree[], short maxBranches)
 {
-    for (int i = 0; i < maxBranches; i++)
+    for (short i = 0; i < maxBranches; i++)
     {
         if (tree[i].active == false)
             return i;
     }
-    return -1;
+    return -99;
 }
 
-void printTree(Branch tree[], int maxBranches)
+void printTree(Branch tree[], short maxBranches)
 {
-    int numBranches = 0;
-    for (int i = 0; i < maxBranches; i++)
+    short numBranches = 0;
+    for (short i = 0; i < maxBranches; i++)
     {
         if (tree[i].active)
         {
@@ -1012,7 +1168,7 @@ void printTree(Branch tree[], int maxBranches)
         }
     }
 
-    for (int i = 0; i < numBranches; i++)
+    for (short i = 0; i < numBranches; i++)
     {
         if (i == 0)
         {
@@ -1042,32 +1198,62 @@ void printTree(Branch tree[], int maxBranches)
     }
 }
 
-void decodeAttribute(int attribute)
+void decodeAttribute(short attribute)
 {
     switch (attribute)
     {
         case 0:
-            printf("'buying'");
+            printf("'age'");
             break;
         case 1:
-            printf("'maint'");
+            printf("'job'");
             break;
         case 2:
-            printf("'doors'");
+            printf("'marital'");
             break;
         case 3:
-            printf("'persons'");
+            printf("'education'");
             break;
         case 4:
-            printf("'lug_boot'");
+            printf("'default'");
             break;
         case 5:
-            printf("'safety'");
+            printf("'balance'");
+            break;
+        case 6:
+            printf("'housing'");
+            break;
+        case 7:
+            printf("'loan'");
+            break;
+        case 8:
+            printf("'contact'");
+            break;
+        case 9:
+            printf("'day'");
+            break;
+        case 10:
+            printf("'month'");
+            break;
+        case 11:
+            printf("'duration'");
+            break;
+        case 12:
+            printf("'campaign'");
+            break;
+        case 13:
+            printf("'pdays'");
+            break;
+        case 14:
+            printf("'previous'");
+            break;
+        case 15:
+            printf("'poutcome'");
             break;
     }
 }
 
-void decodeValue(int attribute, int value)
+void decodeValue(short attribute, short value)
 {
     switch (attribute)
     {
@@ -1075,16 +1261,10 @@ void decodeValue(int attribute, int value)
             switch (value)
             {
                 case 0:
-                    printf("'vhigh'");
+                    printf("'above mean'");
                     break;
                 case 1:
-                    printf("'high'");
-                    break;
-                case 2:
-                    printf("'med'");
-                    break;
-                case 3:
-                    printf("'low'");
+                    printf("'below mean'");
                     break;
             }
             break;
@@ -1092,16 +1272,40 @@ void decodeValue(int attribute, int value)
             switch (value)
             {
                 case 0:
-                    printf("'vhigh'");
+                    printf("'admin'");
                     break;
                 case 1:
-                    printf("'high'");
+                    printf("'unknown'");
                     break;
                 case 2:
-                    printf("'med'");
+                    printf("'unemployed'");
                     break;
                 case 3:
-                    printf("'low'");
+                    printf("'management'");
+                    break;
+                case 4:
+                    printf("'housemaid'");
+                    break;
+                case 5:
+                    printf("'entrepreneur'");
+                    break;
+                case 6:
+                    printf("'student'");
+                    break;
+                case 7:
+                    printf("'blue-collar'");
+                    break;
+                case 8:
+                    printf("'self-employed'");
+                    break;
+                case 9:
+                    printf("'retired'");
+                    break;
+                case 10:
+                    printf("'technician'");
+                    break;
+                case 11:
+                    printf("'services'");
                     break;
             }
             break;
@@ -1109,16 +1313,13 @@ void decodeValue(int attribute, int value)
             switch (value)
             {
                 case 0:
-                    printf("'2'");
+                    printf("'married'");
                     break;
                 case 1:
-                    printf("'3'");
+                    printf("'divorced'");
                     break;
                 case 2:
-                    printf("'4'");
-                    break;
-                case 3:
-                    printf("'5more'");
+                    printf("'single'");
                     break;
             }
             break;
@@ -1126,13 +1327,16 @@ void decodeValue(int attribute, int value)
             switch (value)
             {
                 case 0:
-                    printf("'2'");
+                    printf("'unknown'");
                     break;
                 case 1:
-                    printf("'4'");
+                    printf("'secondary'");
                     break;
-                case 2:
-                    printf("'more'");
+                case 3:
+                    printf("'primary'");
+                    break;
+                case 4:
+                    printf("'tertiary'");
                     break;
             }
             break;
@@ -1140,13 +1344,10 @@ void decodeValue(int attribute, int value)
             switch (value)
             {
                 case 0:
-                    printf("'small'");
+                    printf("'yes'");
                     break;
                 case 1:
-                    printf("'med'");
-                    break;
-                case 2:
-                    printf("'big'");
+                    printf("'no'");
                     break;
             }
             break;
@@ -1154,39 +1355,179 @@ void decodeValue(int attribute, int value)
             switch (value)
             {
                 case 0:
-                    printf("'low'");
+                    printf("'above median'");
                     break;
                 case 1:
-                    printf("'med'");
+                    printf("'below median'");
+                    break;
+            }
+            break;
+        case 6:
+            switch (value)
+            {
+                case 0:
+                    printf("'yes'");
+                    break;
+                case 1:
+                    printf("'no'");
+                    break;
+            }
+            break;
+        case 7:
+            switch (value)
+            {
+                case 0:
+                    printf("'yes'");
+                    break;
+                case 1:
+                    printf("'no'");
+                    break;
+            }
+            break;
+        case 8:
+            switch (value)
+            {
+                case 0:
+                    printf("'unknown'");
+                    break;
+                case 1:
+                    printf("'telephone'");
                     break;
                 case 2:
-                    printf("'high'");
+                    printf("'cellular'");
+                    break;
+            }
+            break;
+        case 9:
+            switch (value)
+            {
+                case 0:
+                    printf("'above median'");
+                    break;
+                case 1:
+                    printf("'below median'");
+                    break;
+            }
+            break;
+        case 10:
+            switch (value)
+            {
+                case 0:
+                    printf("'jan'");
+                    break;
+                case 1:
+                    printf("'feb'");
+                    break;
+                case 2:
+                    printf("'mar'");
+                    break;
+                case 3:
+                    printf("'apr'");
+                    break;
+                case 4:
+                    printf("'may'");
+                    break;
+                case 5:
+                    printf("'jun'");
+                    break;
+                case 6:
+                    printf("'jul'");
+                    break;
+                case 7:
+                    printf("'aug'");
+                    break;
+                case 8:
+                    printf("'sep'");
+                    break;
+                case 9:
+                    printf("'oct'");
+                    break;
+                case 10:
+                    printf("'nov'");
+                    break;
+                case 11:
+                    printf("'dec'");
+                    break;
+            }
+            break;
+        case 11:
+            switch (value)
+            {
+                case 0:
+                    printf("'above median'");
+                    break;
+                case 1:
+                    printf("'below median'");
+                    break;
+            }
+            break;
+        case 12:
+            switch (value)
+            {
+                case 0:
+                    printf("'above median'");
+                    break;
+                case 1:
+                    printf("'below median'");
+                    break;
+            }
+            break;
+        case 13:
+            switch (value)
+            {
+                case 0:
+                    printf("'above median'");
+                    break;
+                case 1:
+                    printf("'below median'");
+                    break;
+            }
+            break;
+        case 14:
+            switch (value)
+            {
+                case 0:
+                    printf("'above median'");
+                    break;
+                case 1:
+                    printf("'below median'");
+                    break;
+            }
+            break;
+        case 15:
+            switch (value)
+            {
+                case 0:
+                    printf("'unknown'");
+                    break;
+                case 1:
+                    printf("'other'");
+                    break;
+                case 2:
+                    printf("'failure'");
+                    break;
+                case 3:
+                    printf("success");
                     break;
             }
             break;
     }
 }
 
-void decodeLabel(int label)
+void decodeLabel(short label)
 {
     switch (label)
     {
         case 0:
-            printf("'unacc'");
+            printf("'yes'");
             break;
         case 1:
-            printf("'acc'");
-            break;
-        case 2:
-            printf("'good'");
-            break;
-        case 3:
-            printf("'vgood'");
+            printf("'no'");
             break;
     }
 }
 
-void exportTree(Branch tree[], int maxBranches)
+void exportTree(Branch tree[], short maxBranches)
 {
     printf("\nEnter name of file to export tree to:\n\n");
     char name[50];
@@ -1198,12 +1539,12 @@ void exportTree(Branch tree[], int maxBranches)
         return;
     }
 
-    for (int i = 0; i < maxBranches; i++)
+    for (short i = 0; i < maxBranches; i++)
     {
         if (tree[i].active)
         {
             fprintf(outputFile, "%d,%d,%d,%d,%d", i, tree[i].attribute, tree[i].value, tree[i].label, tree[i].parent);
-            for (int j = 0; j < MAX_VAL; j++)
+            for (short j = 0; j < MAX_VAL; j++)
             {
                 fprintf(outputFile, ",%d", tree[i].leaf[j]);
             }
