@@ -138,7 +138,7 @@ bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, 
 #define MAX_VAL 41 
 #define MAX_BRANCH 5000
 
-short splitLeaf(short currentInstances[NUM_I], short data[][NUM_ATTRIBUTES+1], short numInstances, short method, bool parentAttribute[NUM_ATTRIBUTES], short branchIndex);
+short split_leaf(short currentInstances[NUM_I], short data[][NUM_ATTRIBUTES+1], short numInstances, short method, bool parentAttribute[NUM_ATTRIBUTES], short branchIndex);
 float ig_initial(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances);
 float ig_gain(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances, short attribute);
 float me_initial(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances);
@@ -146,11 +146,11 @@ float me_gain(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstan
 float gini_initial(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances);
 float gini_gain(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances, short attribute);
 
-short countData(void);
-short importData(short data[][NUM_ATTRIBUTES+1], short numInstances);
-short valueToInt(char* value, short attribute);
-short getMethod(void);
-short getMaxDepth(void);
+short count_data(void);
+short import_data(short data[][NUM_ATTRIBUTES+1], short numInstances);
+short value_to_int(char* value, short attribute);
+short get_method(void);
+short get_max_depth(void);
 
 typedef struct
 {
@@ -163,26 +163,26 @@ typedef struct
     short label;      //The label for this branch (-99 no label, -2 all children labelled)
 }Branch;
 
-void printTree(Branch tree[], short maxBranches);
-void decodeAttribute(short attribute);
-void decodeValue(short attribute, short value);
-void decodeLabel(short label);
-void exportTree(Branch tree[], short maxBranches);
+void print_tree(Branch tree[], short maxBranches);
+void decode_attribute(short attribute);
+void decode_value(short attribute, short value);
+void decode_label(short label);
+void export_tree(Branch tree[], short maxBranches);
 
-short getNextID(Branch tree[], short maxBranches);
+short get_next_id(Branch tree[], short maxBranches);
 
 int main()
 {
     //Import data from CSV
-    short numInstances = countData();
+    short numInstances = count_data();
     if (numInstances == -99)
     {
         return 1;
     }
     short data[numInstances][NUM_ATTRIBUTES+1];
-    importData(data, numInstances);
-    short method = getMethod();
-    short maxDepth = getMaxDepth();
+    import_data(data, numInstances);
+    short method = get_method();
+    short maxDepth = get_max_depth();
     short maxBranches = MAX_BRANCH;
     Branch tree[maxBranches];
     short currentLevel = 1;
@@ -461,11 +461,11 @@ int main()
                         parentAttribute[tree[tempIndex].attribute] = true;
                     }
                     //split
-                    tree[branchIndex].attribute = splitLeaf(currentInstances[branchIndex], data, numInstances, method, parentAttribute, branchIndex);
+                    tree[branchIndex].attribute = split_leaf(currentInstances[branchIndex], data, numInstances, method, parentAttribute, branchIndex);
                     //create leaves & assign values
                     for (short i = 0; i < numValues[tree[branchIndex].attribute]; i++)
                     {
-                        tree[branchIndex].leaf[i] = getNextID(tree, maxBranches);
+                        tree[branchIndex].leaf[i] = get_next_id(tree, maxBranches);
                         if (tree[branchIndex].leaf[i] == -99)
                         {
                             printf("ERROR: out of branches!\n");
@@ -502,13 +502,13 @@ int main()
     printf("\n");
     if (ans == 'Y')
     {
-        printTree(tree, maxBranches);
+        print_tree(tree, maxBranches);
     }
-    exportTree(tree, maxBranches);
+    export_tree(tree, maxBranches);
     return 0;
 }
 
-short splitLeaf(short currentInstances[NUM_I], short data[][NUM_ATTRIBUTES+1], short numInstances, short method, bool parentAttribute[NUM_ATTRIBUTES], short branchIndex)
+short split_leaf(short currentInstances[NUM_I], short data[][NUM_ATTRIBUTES+1], short numInstances, short method, bool parentAttribute[NUM_ATTRIBUTES], short branchIndex)
 {
     //Main algorithm loop
     float initialInformation;
@@ -880,7 +880,7 @@ float gini_gain(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInst
     return weightedGini;
 }
 
-short countData(void)
+short count_data(void)
 {
      short count = 0;
 
@@ -911,7 +911,7 @@ short countData(void)
     return count;
 }
 
-short importData(short data[][NUM_ATTRIBUTES+1], short numInstances)
+short import_data(short data[][NUM_ATTRIBUTES+1], short numInstances)
 {
     FILE *inputFile = fopen("train_final.csv", "r");
     if (inputFile == NULL)
@@ -938,7 +938,7 @@ short importData(short data[][NUM_ATTRIBUTES+1], short numInstances)
                 token = strtok(row, ",");
                 for (short j = 0; j < NUM_ATTRIBUTES+1; j++)
                 {
-                    data[i][j] = valueToInt(token, j);
+                    data[i][j] = value_to_int(token, j);
                     token = strtok(NULL, ",\r\n");
                 }
             }
@@ -949,7 +949,7 @@ short importData(short data[][NUM_ATTRIBUTES+1], short numInstances)
 }
 
 //Convert value strings from input dataset to integers
-short valueToInt(char* value, short attribute)
+short value_to_int(char* value, short attribute)
 {
     if (isNumeric[attribute])
     {
@@ -1208,7 +1208,7 @@ short valueToInt(char* value, short attribute)
     return -99;
 }
 
-short getMethod(void)
+short get_method(void)
 {
     char userInput;
     bool userInputValid;
@@ -1240,7 +1240,7 @@ short getMethod(void)
     return method;
 }
 
-short getMaxDepth(void)
+short get_max_depth(void)
 {
     char userInput[50];
     bool userInputValid;
@@ -1265,7 +1265,7 @@ short getMaxDepth(void)
     return depth;
 }
 
-short getNextID(Branch tree[], short maxBranches)
+short get_next_id(Branch tree[], short maxBranches)
 {
     for (short i = 0; i < maxBranches; i++)
     {
@@ -1275,7 +1275,7 @@ short getNextID(Branch tree[], short maxBranches)
     return -99;
 }
 
-void printTree(Branch tree[], short maxBranches)
+void print_tree(Branch tree[], short maxBranches)
 {
     short numBranches = 0;
     for (short i = 0; i < maxBranches; i++)
@@ -1295,7 +1295,7 @@ void printTree(Branch tree[], short maxBranches)
         if (i == 0)
         {
             printf("Branch node 0 is the beginning of the tree and splits on attribute ");
-            decodeAttribute(tree[i].attribute);
+            decode_attribute(tree[i].attribute);
             printf("\n");
         }
         else
@@ -1303,24 +1303,24 @@ void printTree(Branch tree[], short maxBranches)
             if (tree[i].label < 0)
             {
                 printf("Branch node %d has value ", i);
-                decodeValue(tree[tree[i].parent].attribute, tree[i].value);
+                decode_value(tree[tree[i].parent].attribute, tree[i].value);
                 printf(" from parent branch %d and splits on attribute ", tree[i].parent);
-                decodeAttribute(tree[i].attribute);
+                decode_attribute(tree[i].attribute);
                 printf("\n");
             }
             else
             {
                 printf("Branch node %d has value ", i);
-                decodeValue(tree[tree[i].parent].attribute, tree[i].value);
+                decode_value(tree[tree[i].parent].attribute, tree[i].value);
                 printf(" from parent branch %d and label ", tree[i].parent);
-                decodeLabel(tree[i].label);
+                decode_label(tree[i].label);
                 printf("\n");
             }
         }
     }
 }
 
-void decodeAttribute(short attribute)
+void decode_attribute(short attribute)
 {
     switch (attribute)
     {
@@ -1369,7 +1369,7 @@ void decodeAttribute(short attribute)
     }
 }
 
-void decodeValue(short attribute, short value)
+void decode_value(short attribute, short value)
 {
     switch (attribute)
     {
@@ -1821,7 +1821,7 @@ void decodeValue(short attribute, short value)
     }
 }
 
-void decodeLabel(short label)
+void decode_label(short label)
 {
     switch (label)
     {
@@ -1834,7 +1834,7 @@ void decodeLabel(short label)
     }
 }
 
-void exportTree(Branch tree[], short maxBranches)
+void export_tree(Branch tree[], short maxBranches)
 {
     printf("\nEnter name of file to export tree to:\n\n");
     char name[50];
