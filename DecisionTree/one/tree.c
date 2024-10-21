@@ -3,10 +3,10 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define NUM_ATTRIBUTES 16
-#define MAX_VAL 12 
-float thresholds[NUM_ATTRIBUTES] = {38, 0, 0, 0, 0, 452.5, 0, 0, 0, 16, 0, 180, 2, -1, 0, 0};
-bool isNumeric[NUM_ATTRIBUTES] = {true, false, false, false, false, true, false, false, false, true, false, true, true, true, true, false};
+#define NUM_ATTRIBUTES 14
+#define MAX_VAL 41 
+float thresholds[NUM_ATTRIBUTES] = {37, 0, 177299.5, 0, 10, 0, 0, 0, 0, 0, 0, 0, 40, 0};
+bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, false, false, false, true, true, true, false};
 
 int countEntries(char fileName[]);
 int importData(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances, int numAttributes);
@@ -32,7 +32,7 @@ int main()
     printf("\n");
     //Import data from CSV
     int numInstances = countEntries(userInput);
-    if (numInstances == -1)
+    if (numInstances == -99)
     {
         return 1;
     }
@@ -52,7 +52,7 @@ int main()
     scanf(" %s", userInput);
     printf("\n");
     int numBranches = countEntries(userInput);
-    if (numBranches == -1)
+    if (numBranches == -99)
     {
         return 1;
     }
@@ -79,7 +79,7 @@ int main()
     while (instanceIndex < numInstances)
     {   
         //If the current branch in the tree has a label, assign that label to that instance
-        if (tree[branchIndex].label > -1)
+        if (tree[branchIndex].label > -99)
         {
             myLabels[instanceIndex] = tree[branchIndex].label;
             branchIndex = 0;
@@ -135,7 +135,7 @@ int countEntries(char fileName[])
     if (inputFile == NULL)
     {
         printf("Error opening file: %s\n", fileName);
-        return -1;
+        return -99;
     }
 
     char row[100];
@@ -163,7 +163,7 @@ int importData(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances, 
     if (inputFile == NULL)
     {
         printf("Error opening file: %s\n", fileName);
-        return -1;
+        return -99;
     }
 
     char row[100];
@@ -200,7 +200,7 @@ int importTree(char fileName[], int tree[][17], int numInstances, int numAttribu
     if (inputFile == NULL)
     {
         printf("Error opening file: %s\n", fileName);
-        return -1;
+        return -99;
     }
 
     char row[100];
@@ -232,7 +232,7 @@ int importTree(char fileName[], int tree[][17], int numInstances, int numAttribu
 }
 
 //Convert value strings from input dataset to integers
-int valueToInt(char* value, int attribute)
+int valueToInt(char* value, short attribute)
 {
     if (attribute == -2)
     {
@@ -240,15 +240,20 @@ int valueToInt(char* value, int attribute)
     }
     else if (isNumeric[attribute])
     {
-        if (atoi(value) >= thresholds[attribute])
-        {
-            //yes >=
-            return 0;
-        }
+        if (!(strcmp(value, "?")))
+            return 2;
         else
         {
-            //no <
-            return 1;
+            if (atoi(value) <= thresholds[attribute])
+            {
+                //yes <=
+                return 0;
+            }
+            else
+            {
+                //no >
+                return 1;
+            }
         }
     }
     else
@@ -256,118 +261,236 @@ int valueToInt(char* value, int attribute)
         switch (attribute)
         {
             case 1:
-                if (!strcmp(value, "admin"))
+                if (!strcmp(value, "Private"))
                     return 0;
-                else if (!strcmp(value, "unknown"))
+                if (!strcmp(value, "Self-emp-not-inc"))
                     return 1;
-                else if (!strcmp(value, "unemployed"))
+                if (!strcmp(value, "Self-emp-inc"))
                     return 2;
-                else if (!strcmp(value, "management"))
+                if (!strcmp(value, "Federal-gov"))
                     return 3;
-                else if (!strcmp(value, "housemaid"))
+                if (!strcmp(value, "Local-gov"))
                     return 4;
-                else if (!strcmp(value, "entrepreneur"))
+                if (!strcmp(value, "State-gov"))
                     return 5;
-                else if (!strcmp(value, "student"))
+                if (!strcmp(value, "Without-pay"))
                     return 6;
-                else if (!strcmp(value, "blue-collar"))
+                if (!strcmp(value, "Never-worked"))
                     return 7;
-                else if (!strcmp(value, "self-employed"))
+                if (!(strcmp(value, "?")))
                     return 8;
-                else if (!strcmp(value, "retired"))
-                    return 9;
-                else if (!strcmp(value, "technician"))
-                    return 10;
-                else if (!strcmp(value, "services"))
-                    return 11;
-                break;
-            case 2:
-                if (!strcmp(value, "married"))
-                    return 0;
-                else if (!strcmp(value, "divorced"))
-                    return 1;
-                else if (!strcmp(value, "single"))
-                    return 2;
                 break;
             case 3:
-                if (!strcmp(value, "unknown"))
+                if (!strcmp(value, "Bachelors"))
                     return 0;
-                else if (!strcmp(value, "secondary"))
+                if (!strcmp(value, "Some-college"))
                     return 1;
-                else if (!strcmp(value, "primary"))
+                if (!strcmp(value, "11th"))
                     return 2;
-                else if (!strcmp(value, "tertiary"))
+                if (!strcmp(value, "HS-grad"))
                     return 3;
+                if (!strcmp(value, "Prof-school"))
+                    return 4;
+                if (!strcmp(value, "Assoc-acdm"))
+                    return 5;
+                if (!strcmp(value, "Assoc-voc"))
+                    return 6;
+                if (!strcmp(value, "9th"))
+                    return 7;
+                if (!strcmp(value, "7th-8th"))
+                    return 8;
+                if (!strcmp(value, "12th"))
+                    return 9;
+                if (!strcmp(value, "Masters"))
+                    return 10;
+                if (!strcmp(value, "1st-4th"))
+                    return 11;
+                if (!strcmp(value, "10th"))
+                    return 12;
+                if (!strcmp(value, "Doctorate"))
+                    return 13;
+                if (!strcmp(value, "5th-6th"))
+                    return 14;
+                if (!strcmp(value, "Preschool"))
+                    return 15;
+                if (!(strcmp(value, "?")))
+                    return 16;
                 break;
-            case 4:
-                if (!strcmp(value, "yes"))
+            case 5:
+                if (!strcmp(value, "Married-civ-spouse"))
                     return 0;
-                else if (!strcmp(value, "no"))
+                if (!strcmp(value, "Divorced"))
                     return 1;
+                if (!strcmp(value, "Never-married"))
+                    return 2;
+                if (!strcmp(value, "Separated"))
+                    return 3;
+                if (!strcmp(value, "Widowed"))
+                    return 4;
+                if (!strcmp(value, "Married-spouse-absent"))
+                    return 5;
+                if (!strcmp(value, "Married-AF-spouse"))
+                    return 6;
+                if (!(strcmp(value, "?")))
+                    return 7;
                 break;
             case 6:
-                if (!strcmp(value, "yes"))
+                if (!strcmp(value, "Tech-support"))
                     return 0;
-                else if (!strcmp(value, "no"))
+                if (!strcmp(value, "Craft-repair"))
                     return 1;
+                if (!strcmp(value, "Other-service"))
+                    return 2;
+                if (!strcmp(value, "Sales"))
+                    return 3;
+                if (!strcmp(value, "Exec-managerial"))
+                    return 4;
+                if (!strcmp(value, "Prof-specialty"))
+                    return 5;
+                if (!strcmp(value, "Handlers-cleaners"))
+                    return 6;
+                if (!strcmp(value, "Machine-op-inspct"))
+                    return 7;
+                if (!strcmp(value, "Adm-clerical"))
+                    return 8;
+                if (!strcmp(value, "Farming-fishing"))
+                    return 9;
+                if (!strcmp(value, "Transport-moving"))
+                    return 10;
+                if (!strcmp(value, "Priv-house-serv"))
+                    return 11;
+                if (!strcmp(value, "Protective-serv"))
+                    return 12;
+                if (!strcmp(value, "Armed-Forces"))
+                    return 13;
+                if (!(strcmp(value, "?")))
+                    return 14;
                 break;
             case 7:
-                if (!strcmp(value, "yes"))
+                if (!strcmp(value, "Wife"))
                     return 0;
-                else if (!strcmp(value, "no"))
+                if (!strcmp(value, "Own-child"))
                     return 1;
+                if (!strcmp(value, "Husband"))
+                    return 2;
+                if (!strcmp(value, "Not-in-family"))
+                    return 3;
+                if (!strcmp(value, "Other-relative"))
+                    return 4;
+                if (!strcmp(value, "Unmarried"))
+                    return 5;
+                if (!(strcmp(value, "?")))
+                    return 6;
+                break;
+            case 8:
+                if (!strcmp(value, "White"))
+                    return 0;
+                if (!strcmp(value, "Asian-Pac-Islander"))
+                    return 1;
+                if (!strcmp(value, "Amer-Indian-Eskimo"))
+                    return 2;
+                if (!strcmp(value, "Other"))
+                    return 3;
+                if (!strcmp(value, "Black"))
+                    return 4;
+                if (!(strcmp(value, "?")))
+                    return 5;
                 break;
             case 9:
-                if (!strcmp(value, "unknown"))
+                if (!strcmp(value, "Female"))
                     return 0;
-                else if (!strcmp(value, "telephone"))
+                if (!strcmp(value, "Male"))
                     return 1;
-                else if (!strcmp(value, "cellular"))
+                if (!(strcmp(value, "?")))
                     return 2;
                 break;
-            case 10:
-                if (!strcmp(value, "jan"))
+            case 13:
+                if (!strcmp(value, "United-States"))
                     return 0;
-                else if (!strcmp(value, "feb"))
+                if (!strcmp(value, "Cambodia"))
                     return 1;
-                else if (!strcmp(value, "mar"))
+                if (!strcmp(value, "England"))
                     return 2;
-                if (!strcmp(value, "apr"))
+                if (!strcmp(value, "Puerto-Rico"))
                     return 3;
-                else if (!strcmp(value, "may"))
+                if (!strcmp(value, "Canada"))
                     return 4;
-                else if (!strcmp(value, "jun"))
+                if (!strcmp(value, "Germany"))
                     return 5;
-                if (!strcmp(value, "jul"))
+                if (!strcmp(value, "Outlying-US(Guam-USVI-etc)"))
                     return 6;
-                else if (!strcmp(value, "aug"))
+                if (!strcmp(value, "India"))
                     return 7;
-                else if (!strcmp(value, "sep"))
+                if (!strcmp(value, "Japan"))
                     return 8;
-                if (!strcmp(value, "oct"))
+                if (!strcmp(value, "Greece"))
                     return 9;
-                else if (!strcmp(value, "nov"))
+                if (!strcmp(value, "South"))
                     return 10;
-                else if (!strcmp(value, "dec"))
+                if (!strcmp(value, "China"))
                     return 11;
-                break;
-            case 15:
-                if (!strcmp(value, "unknown"))
-                    return 0;
-                else if (!strcmp(value, "other"))
-                    return 1;
-                else if (!strcmp(value, "failure"))
-                    return 2;
-                else if (!strcmp(value, "success"))
-                    return 3;
-                break;
-            case 16:
-                if (!strcmp(value, "yes"))
-                    return 0;
-                else if (!strcmp(value, "no"))
-                    return 1;
+                if (!strcmp(value, "Cuba"))
+                    return 12;
+                if (!strcmp(value, "Iran"))
+                    return 13;
+                if (!strcmp(value, "Honduras"))
+                    return 14;
+                if (!strcmp(value, "Philippines"))
+                    return 15;
+                if (!strcmp(value, "Italy"))
+                    return 16;
+                if (!strcmp(value, "Poland"))
+                    return 17;
+                if (!strcmp(value, "Jamaica"))
+                    return 18;
+                if (!strcmp(value, "Vietnam"))
+                    return 19;
+                if (!strcmp(value, "Mexico"))
+                    return 20;
+                if (!strcmp(value, "Portugal"))
+                    return 21;
+                if (!strcmp(value, "Ireland"))
+                    return 22;
+                if (!strcmp(value, "France"))
+                    return 23;
+                if (!strcmp(value, "Dominican-Republic"))
+                    return 24;
+                if (!strcmp(value, "Laos"))
+                    return 25;
+                if (!strcmp(value, "Ecuador"))
+                    return 26;
+                if (!strcmp(value, "Taiwan"))
+                    return 27;
+                if (!strcmp(value, "Haiti"))
+                    return 28;
+                if (!strcmp(value, "Columbia"))
+                    return 29;
+                if (!strcmp(value, "Hungary"))
+                    return 30;
+                if (!strcmp(value, "Guatemala"))
+                    return 31;
+                if (!strcmp(value, "Nicaragua"))
+                    return 32;
+                if (!strcmp(value, "Scotland"))
+                    return 33;
+                if (!strcmp(value, "Thailand"))
+                    return 34;
+                if (!strcmp(value, "Yugoslavia"))
+                    return 35;
+                if (!strcmp(value, "El-Salvador"))
+                    return 36;
+                if (!strcmp(value, "Trinadad&Tobago"))
+                    return 37;
+                if (!strcmp(value, "Peru"))
+                    return 38;
+                if (!strcmp(value, "Hong"))
+                    return 39;
+                if (!strcmp(value, "Holand-Netherlands"))
+                    return 40;
+                if (!(strcmp(value, "?")))
+                    return 41;
                 break;
         }
     }
-    return -1;
+    return -99;
 }
