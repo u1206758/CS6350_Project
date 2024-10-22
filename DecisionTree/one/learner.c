@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <math.h>
 
-#define NUM_I 25000 //25000 instances in the training set
+#define NUM_I 500 //25000 instances in the training set
 #define NUM_LABELS 2 //Binary label, 0 = <=50k, 1= >50k
 #define NUM_ATTRIBUTES 14 //14 attributes
 /* Attributes & values
@@ -920,7 +920,7 @@ short import_data(short data[][NUM_ATTRIBUTES+1], short numInstances)
         return -99;
     }
 
-    char row[100];
+    char row[150];
     char *token;
 
     //Parse input CSV into data instance struct array
@@ -928,7 +928,7 @@ short import_data(short data[][NUM_ATTRIBUTES+1], short numInstances)
     {
         for (short i = 0; i < numInstances; i++)
         {
-            if (fgets(row, 100, inputFile) == NULL)
+            if (fgets(row, 150, inputFile) == NULL)
             {
                 fclose(inputFile);
                 return 0;
@@ -1203,6 +1203,12 @@ short value_to_int(char* value, short attribute)
                 if (!(strcmp(value, "?")))
                     return 41;
                 break;
+            case 14:
+                if (!strcmp(value, "0"))
+                    return 0;
+                if (!strcmp(value, "1"))
+                    return 1;
+                break;
         }
     }
     return -99;
@@ -1258,7 +1264,7 @@ short get_max_depth(void)
         //}
         //else
         //{
-            printf("Invalid selection\n\n");
+        //    printf("Invalid selection\n\n");
         //    userInputValid = false;
         //}
     } while (!userInputValid);
