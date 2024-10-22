@@ -223,7 +223,10 @@ int main()
     tree[0].level = 1;
     while(!allDone)
     {
-       // printf("BI: %d, d: %d, a: %d\n", branchIndex, tree[branchIndex].level, tree[tree[branchIndex].parent].attribute);
+        //printf("BI: %d, d: %d, a: %d\n", branchIndex, tree[branchIndex].level, tree[tree[branchIndex].parent].attribute);
+        //printf("%d\n",tree[0].attribute);
+        //if (branchIndex > 50)
+        //    return 0;
         short lastLabel = -99;
         bool readyToLabel = true;
         bool allLeavesLabelled = true;
@@ -461,7 +464,7 @@ int main()
                         parentAttribute[tree[tempIndex].attribute] = true;
                     }
                     //split
-                    tree[branchIndex].attribute = split_leaf(currentInstances[branchIndex], data, numInstances, method, parentAttribute, branchIndex);
+                    tree[branchIndex].attribute = split_leaf(currentInstances[branchIndex], data, numInstances, method, parentAttribute, branchIndex);        
                     //create leaves & assign values
                     for (short i = 0; i < numValues[tree[branchIndex].attribute]; i++)
                     {
@@ -565,6 +568,7 @@ short split_leaf(short currentInstances[NUM_I], short data[][NUM_ATTRIBUTES+1], 
         {
             bestGain = initialInformation - attributeGain[i];
             bestAttribute = i;
+
         }
     }
     return bestAttribute;
@@ -1372,6 +1376,8 @@ void decode_attribute(short attribute)
         case 13:
             printf("'native-country'");
             break;
+        default:
+            printf("err %d", attribute);
     }
 }
 
@@ -1824,6 +1830,8 @@ void decode_value(short attribute, short value)
                     break;
             }
             break;
+            default:
+            printf("err %d %d", attribute, value);
     }
 }
 
