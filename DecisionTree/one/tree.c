@@ -3,14 +3,16 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define NUM_ATTRIBUTES 15
-#define MAX_VAL 41 
-float thresholds[NUM_ATTRIBUTES] = {0, 37, 0, 177299.5, 0, 10, 0, 0, 0, 0, 0, 0, 0, 40, 0};
-bool isNumeric[NUM_ATTRIBUTES] = {false, true, false, true, false, true, false, false, false, false, false, true, true, true, false};
+#define NUM_ATTRIBUTES 14
+#define MAX_VAL 42
+#define TREE_VAL 47
+int numValues[NUM_ATTRIBUTES] = {3, 9, 3, 17, 3, 8, 15, 7, 6, 3, 3, 3, 3, 42};
+float thresholds[NUM_ATTRIBUTES] = {37, 0, 177299.5, 0, 10, 0, 0, 0, 0, 0, 0, 0, 40, 0};
+bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, false, false, false, true, true, true, false};
 
 int count_entries(char fileName[]);
 int import_data(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances, int numAttributes, int dataID[numInstances]);
-int import_tree(char fileName[], int tree[][17], int numInstances, int numAttributes);
+int import_tree(char fileName[], int tree[][TREE_VAL], int numInstances, int numAttributes);
 int value_to_int(char* value, int attribute);
 void export_submission(int myLabels[], int numInstances);
 typedef struct
@@ -38,13 +40,15 @@ int main()
     }
     int data[numInstances][NUM_ATTRIBUTES+1];
     int dataID[numInstances];
-    import_data(userInput, data, numInstances, NUM_ATTRIBUTES+1, dataID);
+    import_data(userInput, data, numInstances, NUM_ATTRIBUTES, dataID);
     int dataLabels[numInstances];
     int myLabels[numInstances];
     //Set up label arrays for error calculations
     for (int i = 0; i < numInstances; i++)
     {
         dataLabels[i] = data[i][NUM_ATTRIBUTES];
+        if (dataLabels[i] != -99)
+            printf("label %d: %d\n",i,dataLabels[i]);
         myLabels[i] = -3;
     }
 
@@ -57,9 +61,9 @@ int main()
     {
         return 1;
     }
-    int tempTree[numBranches][17];
+    int tempTree[numBranches][TREE_VAL];
     Branch tree[numBranches];
-    import_tree(userInput, tempTree, numBranches, 17);
+    import_tree(userInput, tempTree, numBranches, TREE_VAL);
     printf("tree imported\n");
     for (int i = 0; i < numBranches; i++)
     {
@@ -68,7 +72,7 @@ int main()
         tree[i].value = tempTree[i][2];
         tree[i].label = tempTree[i][3];
         tree[i].parent = tempTree[i][4];
-        for (int j = 0; j < MAX_VAL; j++)
+        for (int j = 0; j < numValues[tree[i].attribute]; j++)
         {
             tree[i].leaf[j] = tempTree[i][5+j];
         }
@@ -80,23 +84,26 @@ int main()
     //For each instance in dataset
     while (instanceIndex < numInstances)
     {   
+        printf("checking instance %d\n", instanceIndex);
         //If the current branch in the tree has a label, assign that label to that instance
-        if (tree[branchIndex].label > -99)
+        if (tree[branchIndex].label > -1)
         {
             myLabels[instanceIndex] = tree[branchIndex].label;
+            printf("Instance %d labelled %d from branch %d\n", instanceIndex, tree[branchIndex].label, branchIndex);
             branchIndex = 0;
-            printf("Instance %d labelled\n", instanceIndex);
             instanceIndex++;
         }
         //If the current branch does not have a label, move to the leaf whose value on the split attribute matches the instance
         else
         {
-            for (int j = 0; j < MAX_VAL; j++)
+            printf("looking for leaf on branch %d that splits to %d\n",branchIndex, data[instanceIndex][tree[branchIndex].attribute]);
+            for (int j = 0; j < numValues[tree[branchIndex].attribute]; j++)
             {
+                printf("leaf %d splits to %d\n", j, tree[tree[branchIndex].leaf[j]].value);
                 if (data[instanceIndex][tree[branchIndex].attribute] == tree[tree[branchIndex].leaf[j]].value)
                 {
                     branchIndex = tree[branchIndex].leaf[j];
-                    printf("Goto branch %d\n", branchIndex);
+                    printf("goto branch %d\n", branchIndex);
                     break;
                 }
             }
@@ -142,12 +149,12 @@ int count_entries(char fileName[])
         return -99;
     }
 
-    char row[100];
+    char row[300];
 
     //Count number of instances in input file
     while (feof(inputFile) != true)
     {
-        if (fgets(row, 100, inputFile) == NULL)
+        if (fgets(row, 300, inputFile) == NULL)
         {
             fclose(inputFile);
             return count;
@@ -170,7 +177,7 @@ int import_data(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances,
         return -99;
     }
 
-    char row[150];
+    char row[300];
     char *token;
 
     //Parse input CSV into data instance struct array
@@ -178,7 +185,7 @@ int import_data(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances,
     {
         for (int i = 0; i < numInstances; i++)
         {
-            if (fgets(row, 150, inputFile) == NULL)
+            if (fgets(row, 300, inputFile) == NULL)
             {
                 fclose(inputFile);
                 return 0;
@@ -186,18 +193,21 @@ int import_data(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances,
             else
             {
                 token = strtok(row, ",");
-                for (int j = 0; j < numAttributes; j++)
+                for (int j = 0; j < numAttributes+1; j++)
                 {
-                    if (j == 0)
-                    {
-                        dataID[i] = atoi(token);
-                    }
-                    else
-                    {
-                        data[i][j-1] = value_to_int(token, j-1);
+                    //if (j == 0)
+                    //{
+                    //    dataID[i] = atoi(token);
+                    //}
+                    //else
+                    //{
+                        //data[i][j-1] = value_to_int(token, j-1);
+                        dataID[i]=i;
+                        data[i][j] = value_to_int(token, j);
                         token = strtok(NULL, ",\r\n");
-                    }
+                    //}
                 }
+                printf("\n");
             }
         }
     }
@@ -205,7 +215,7 @@ int import_data(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances,
     return 0;
 }
 
-int import_tree(char fileName[], int tree[][17], int numInstances, int numAttributes)
+int import_tree(char fileName[], int tree[][TREE_VAL], int numInstances, int numAttributes)
 {
     FILE *inputFile = fopen(fileName, "r");
     if (inputFile == NULL)
@@ -214,7 +224,7 @@ int import_tree(char fileName[], int tree[][17], int numInstances, int numAttrib
         return -99;
     }
 
-    char row[200];
+    char row[300];
     char *token;
 
     //Parse input CSV into data instance struct array
@@ -222,7 +232,7 @@ int import_tree(char fileName[], int tree[][17], int numInstances, int numAttrib
     {
         for (int i = 0; i < numInstances; i++)
         {
-            if (fgets(row, 200, inputFile) == NULL)
+            if (fgets(row, 300, inputFile) == NULL)
             {
                 fclose(inputFile);
                 return 0;
@@ -269,7 +279,7 @@ int value_to_int(char* value, int attribute)
     }
     else
     {
-        switch (attribute-1)
+        switch (attribute)
         {
             case 1:
                 if (!strcmp(value, "Private"))
@@ -500,6 +510,12 @@ int value_to_int(char* value, int attribute)
                     return 40;
                 if (!(strcmp(value, "?")))
                     return 41;
+                break;
+            case 14:
+                if (!strcmp(value, "0"))
+                    return 0;
+                if (!strcmp(value, "1"))
+                    return 1;
                 break;
         }
     }

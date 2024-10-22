@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <math.h>
 
-#define NUM_I 500 //25000 instances in the training set
+#define NUM_I 15000 //25000 instances in the training set
 #define NUM_LABELS 2 //Binary label, 0 = <=50k, 1= >50k
 #define NUM_ATTRIBUTES 14 //14 attributes
 /* Attributes & values
@@ -135,8 +135,8 @@ short numValues[NUM_ATTRIBUTES] = {3, 9, 3, 17, 3, 8, 15, 7, 6, 3, 3, 3, 3, 42};
 //Precalculated thresholds (medians) of numerical attributes
 float thresholds[NUM_ATTRIBUTES] = {37, 0, 177299.5, 0, 10, 0, 0, 0, 0, 0, 0, 0, 40, 0};
 bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, false, false, false, true, true, true, false};
-#define MAX_VAL 41 
-#define MAX_BRANCH 5000
+#define MAX_VAL 42 
+#define MAX_BRANCH 15000
 
 short split_leaf(short currentInstances[NUM_I], short data[][NUM_ATTRIBUTES+1], short numInstances, short method, bool parentAttribute[NUM_ATTRIBUTES], short branchIndex);
 float ig_initial(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances);
@@ -183,8 +183,10 @@ int main()
     import_data(data, numInstances);
     short method = get_method();
     short maxDepth = get_max_depth();
-    short maxBranches = MAX_BRANCH;
+    int maxBranches = MAX_BRANCH;
+    printf("setmax\n");
     Branch tree[maxBranches];
+    printf("made the big ass tree\n");
     short currentLevel = 1;
     bool allDone = false;
 
@@ -302,7 +304,28 @@ int main()
                     }
                 }
             }
-            //Assign most common label to leaf
+            //If that still doesn't work just assign most common label overall
+            if (maxLabel == -99)
+            {
+                for (int i = 0; i < numInstances; i++)
+                {
+                    for (int j = 0; j < NUM_LABELS; j++)
+                    {
+                        if (data[i][NUM_ATTRIBUTES] == j)
+                        {
+                            labelCount[j]++;
+                        }
+                    }
+                }
+                for (short i = 0; i < NUM_LABELS; i++)
+                {
+                    if (labelCount[i] > maxLabelCount)
+                    {
+                        maxLabelCount = labelCount[i];
+                        maxLabel = i;
+                    }
+                }
+            }
             tree[branchIndex].label = maxLabel;
 
             //Check if all leaves of parent branch are labelled
@@ -378,6 +401,28 @@ int main()
                         {
                             maxLabelCount = labelCount[i];
                             maxLabel = i;
+                        }
+                    }
+                    //If that still doesn't work just assign most common label overall
+                    if (maxLabel == -99)
+                    {
+                        for (int i = 0; i < numInstances; i++)
+                        {
+                            for (int j = 0; j < NUM_LABELS; j++)
+                            {
+                                if (data[i][NUM_ATTRIBUTES] == j)
+                                {
+                                    labelCount[j]++;
+                                }
+                            }
+                        }
+                        for (short i = 0; i < NUM_LABELS; i++)
+                        {
+                            if (labelCount[i] > maxLabelCount)
+                            {
+                                maxLabelCount = labelCount[i];
+                                maxLabel = i;
+                            }
                         }
                     }
                     //set lastLabel to maxLabel
@@ -465,10 +510,14 @@ int main()
                     }
                     //split
                     tree[branchIndex].attribute = split_leaf(currentInstances[branchIndex], data, numInstances, method, parentAttribute, branchIndex);        
+                    //printf("assign %d attribute %d\n", branchIndex, tree[branchIndex].attribute);
                     //create leaves & assign values
                     for (short i = 0; i < numValues[tree[branchIndex].attribute]; i++)
                     {
+                        //printf("check2: %d, i: %d\n", tree[0].attribute, i);
                         tree[branchIndex].leaf[i] = get_next_id(tree, maxBranches);
+                        //printf("IMSTUPID: %d,  %d\n", tree[branchIndex].attribute, numValues[tree[branchIndex].attribute]);
+                        //printf("check3: %d, i: %d\n", tree[0].attribute, i);
                         if (tree[branchIndex].leaf[i] == -99)
                         {
                             printf("ERROR: out of branches!\n");
@@ -476,9 +525,13 @@ int main()
                             return 1;
                         }
                         tree[tree[branchIndex].leaf[i]].active = true;
+                        //printf("check4: %d\n", tree[0].attribute);
                         tree[tree[branchIndex].leaf[i]].value = i;
+                        //printf("check5: %d\n", tree[0].attribute);
                         tree[tree[branchIndex].leaf[i]].parent = branchIndex;
+                        //printf("check6: %d\n", tree[0].attribute);
                         tree[tree[branchIndex].leaf[i]].level = tree[branchIndex].level + 1;
+                        //printf("check7: %d\n", tree[0].attribute);
                         //for each instance
                         for (short j = 0; j < numInstances; j++)
                         {
@@ -495,6 +548,7 @@ int main()
                     }
                     //set branch index to first leaf
                     branchIndex = tree[branchIndex].leaf[0];
+                    //printf("check1: %d\n", tree[0].attribute);
                 }
             }
         }
@@ -896,12 +950,12 @@ short count_data(void)
         return -99;
     }
 
-    char row[100];
+    char row[300];
 
     //Count number of instances in input file
     while (feof(inputFile) != true)
     {
-        if (fgets(row, 100, inputFile) == NULL)
+        if (fgets(row, 300, inputFile) == NULL)
         {
             fclose(inputFile);
             return count;
@@ -924,15 +978,14 @@ short import_data(short data[][NUM_ATTRIBUTES+1], short numInstances)
         return -99;
     }
 
-    char row[150];
+    char row[300];
     char *token;
-
     //Parse input CSV into data instance struct array
     while (feof(inputFile) != true)
     {
-        for (short i = 0; i < numInstances; i++)
+        for (int i = 0; i < numInstances; i++)
         {
-            if (fgets(row, 150, inputFile) == NULL)
+            if (fgets(row, 300, inputFile) == NULL)
             {
                 fclose(inputFile);
                 return 0;
@@ -940,7 +993,7 @@ short import_data(short data[][NUM_ATTRIBUTES+1], short numInstances)
             else
             {
                 token = strtok(row, ",");
-                for (short j = 0; j < NUM_ATTRIBUTES+1; j++)
+                for (int j = 0; j < NUM_ATTRIBUTES+1; j++)
                 {
                     data[i][j] = value_to_int(token, j);
                     token = strtok(NULL, ",\r\n");
