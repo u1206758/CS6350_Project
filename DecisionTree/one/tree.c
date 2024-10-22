@@ -8,10 +8,10 @@
 float thresholds[NUM_ATTRIBUTES] = {37, 0, 177299.5, 0, 10, 0, 0, 0, 0, 0, 0, 0, 40, 0};
 bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, false, false, false, true, true, true, false};
 
-int countEntries(char fileName[]);
-int importData(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances, int numAttributes);
-int importTree(char fileName[], int tree[][17], int numInstances, int numAttributes);
-int valueToInt(char* value, int attribute);
+int count_entries(char fileName[]);
+int import_data(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances, int numAttributes);
+int import_tree(char fileName[], int tree[][17], int numInstances, int numAttributes);
+int value_to_int(char* value, int attribute);
 void export_submission(int myLabels[], int numInstances)
 typedef struct
 {
@@ -31,13 +31,13 @@ int main()
     scanf(" %s", userInput);
     printf("\n");
     //Import data from CSV
-    int numInstances = countEntries(userInput);
+    int numInstances = count_entries(userInput);
     if (numInstances == -99)
     {
         return 1;
     }
     int data[numInstances][NUM_ATTRIBUTES+1];
-    importData(userInput, data, numInstances, NUM_ATTRIBUTES+1);
+    import_data(userInput, data, numInstances, NUM_ATTRIBUTES+1);
     int dataLabels[numInstances];
     int myLabels[numInstances];
     //Set up label arrays for error calculations
@@ -51,14 +51,14 @@ int main()
     printf("Enter tree file name: \n\n");
     scanf(" %s", userInput);
     printf("\n");
-    int numBranches = countEntries(userInput);
+    int numBranches = count_entries(userInput);
     if (numBranches == -99)
     {
         return 1;
     }
     int tempTree[numBranches][17];
     Branch tree[numBranches];
-    importTree(userInput, tempTree, numBranches, 17);
+    import_tree(userInput, tempTree, numBranches, 17);
     for (int i = 0; i < numBranches; i++)
     {
         tree[i].id = tempTree[i][0];
@@ -126,7 +126,7 @@ int main()
 
 }
 
-int countEntries(char fileName[])
+int count_entries(char fileName[])
 {
      int count = 0;
 
@@ -157,7 +157,7 @@ int countEntries(char fileName[])
     return count;
 }
 
-int importData(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances, int numAttributes)
+int import_data(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances, int numAttributes)
 {
     FILE *inputFile = fopen(fileName, "r");
     if (inputFile == NULL)
@@ -184,7 +184,7 @@ int importData(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances, 
                 token = strtok(row, ",");
                 for (int j = 0; j < numAttributes; j++)
                 {
-                    data[i][j] = valueToInt(token, j);
+                    data[i][j] = value_to_int(token, j);
                     token = strtok(NULL, ",\r\n");
                 }
             }
@@ -194,7 +194,7 @@ int importData(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances, 
     return 0;
 }
 
-int importTree(char fileName[], int tree[][17], int numInstances, int numAttributes)
+int import_tree(char fileName[], int tree[][17], int numInstances, int numAttributes)
 {
     FILE *inputFile = fopen(fileName, "r");
     if (inputFile == NULL)
@@ -221,7 +221,7 @@ int importTree(char fileName[], int tree[][17], int numInstances, int numAttribu
                 token = strtok(row, ",");
                 for (int j = 0; j < numAttributes; j++)
                 {
-                    tree[i][j] = valueToInt(token, -2);
+                    tree[i][j] = value_to_int(token, -2);
                     token = strtok(NULL, ",\r\n");
                 }
             }
@@ -232,7 +232,7 @@ int importTree(char fileName[], int tree[][17], int numInstances, int numAttribu
 }
 
 //Convert value strings from input dataset to integers
-int valueToInt(char* value, int attribute)
+int value_to_int(char* value, int attribute)
 {
     if (attribute == -2)
     {
