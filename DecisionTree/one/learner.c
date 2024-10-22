@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <math.h>
 
-#define NUM_I 15000 //25000 instances in the training set
+#define NUM_I 25000 //25000 instances in the training set
 #define NUM_LABELS 2 //Binary label, 0 = <=50k, 1= >50k
 #define NUM_ATTRIBUTES 14 //14 attributes
 /* Attributes & values
@@ -136,7 +136,7 @@ short numValues[NUM_ATTRIBUTES] = {3, 9, 3, 17, 3, 8, 15, 7, 6, 3, 3, 3, 3, 42};
 float thresholds[NUM_ATTRIBUTES] = {37, 0, 177299.5, 0, 10, 0, 0, 0, 0, 0, 0, 0, 40, 0};
 bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, false, false, false, true, true, true, false};
 #define MAX_VAL 42 
-#define MAX_BRANCH 15000
+#define MAX_BRANCH 20000
 
 short split_leaf(short currentInstances[NUM_I], short data[][NUM_ATTRIBUTES+1], short numInstances, short method, bool parentAttribute[NUM_ATTRIBUTES], short branchIndex);
 float ig_initial(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances);
@@ -184,9 +184,11 @@ int main()
     short method = get_method();
     short maxDepth = get_max_depth();
     int maxBranches = MAX_BRANCH;
-    printf("setmax\n");
-    Branch tree[maxBranches];
-    printf("made the big ass tree\n");
+    //printf("setmax\n");
+    //Branch tree[maxBranches];
+    //Branch (*tree) = malloc(sizeof(Branch) * maxBranches);
+    Branch* tree = (Branch*)malloc(maxBranches * sizeof(Branch));
+    //printf("made the big ass tree\n");
     short currentLevel = 1;
     bool allDone = false;
 
@@ -205,7 +207,7 @@ int main()
     //Initialize head of tree
     //short currentInstances[maxBranches][numInstances];
     short (*currentInstances)[numInstances] = malloc(sizeof(*currentInstances) * maxBranches);
-
+    //printf("made current instances\n");
     for (short i = 0; i < maxBranches; i++)
     {
         for (short j = 0; j < numInstances; j++)
@@ -454,7 +456,14 @@ int main()
                 if (allLeavesLabelled)
                 {
                     tree[branchIndex].label = -2;  //mark current branch as having all leaves labelled
-                    branchIndex = tree[branchIndex].parent;
+                    if (branchIndex == 0)
+                    {
+                        allDone = true;
+                    }
+                    else
+                    {
+                        branchIndex = tree[branchIndex].parent;
+                    }
                 }
             }   
             else //branch is not ready to label

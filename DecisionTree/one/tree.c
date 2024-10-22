@@ -47,8 +47,6 @@ int main()
     for (int i = 0; i < numInstances; i++)
     {
         dataLabels[i] = data[i][NUM_ATTRIBUTES];
-        if (dataLabels[i] != -99)
-            printf("label %d: %d\n",i,dataLabels[i]);
         myLabels[i] = -3;
     }
 
@@ -64,7 +62,6 @@ int main()
     int tempTree[numBranches][TREE_VAL];
     Branch tree[numBranches];
     import_tree(userInput, tempTree, numBranches, TREE_VAL);
-    printf("tree imported\n");
     for (int i = 0; i < numBranches; i++)
     {
         tree[i].id = tempTree[i][0];
@@ -84,26 +81,21 @@ int main()
     //For each instance in dataset
     while (instanceIndex < numInstances)
     {   
-        printf("checking instance %d\n", instanceIndex);
         //If the current branch in the tree has a label, assign that label to that instance
         if (tree[branchIndex].label > -1)
         {
             myLabels[instanceIndex] = tree[branchIndex].label;
-            printf("Instance %d labelled %d from branch %d\n", instanceIndex, tree[branchIndex].label, branchIndex);
             branchIndex = 0;
             instanceIndex++;
         }
         //If the current branch does not have a label, move to the leaf whose value on the split attribute matches the instance
         else
         {
-            printf("looking for leaf on branch %d that splits to %d\n",branchIndex, data[instanceIndex][tree[branchIndex].attribute]);
             for (int j = 0; j < numValues[tree[branchIndex].attribute]; j++)
             {
-                printf("leaf %d splits to %d\n", j, tree[tree[branchIndex].leaf[j]].value);
                 if (data[instanceIndex][tree[branchIndex].attribute] == tree[tree[branchIndex].leaf[j]].value)
                 {
                     branchIndex = tree[branchIndex].leaf[j];
-                    printf("goto branch %d\n", branchIndex);
                     break;
                 }
             }
@@ -207,7 +199,6 @@ int import_data(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances,
                         token = strtok(NULL, ",\r\n");
                     //}
                 }
-                printf("\n");
             }
         }
     }
