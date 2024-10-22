@@ -136,7 +136,7 @@ short numValues[NUM_ATTRIBUTES] = {3, 9, 3, 17, 3, 8, 15, 7, 6, 3, 3, 3, 3, 42};
 float thresholds[NUM_ATTRIBUTES] = {37, 0, 177299.5, 0, 10, 0, 0, 0, 0, 0, 0, 0, 40, 0};
 bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, false, false, false, true, true, true, false};
 #define MAX_VAL 42 
-#define MAX_BRANCH 20000
+#define MAX_BRANCH 32000
 
 short split_leaf(short currentInstances[NUM_I], short data[][NUM_ATTRIBUTES+1], short numInstances, short method, bool parentAttribute[NUM_ATTRIBUTES], short branchIndex);
 float ig_initial(short subset[], short dataset[][NUM_ATTRIBUTES+1], short numInstances);

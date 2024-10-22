@@ -60,7 +60,8 @@ int main()
         return 1;
     }
     int tempTree[numBranches][TREE_VAL];
-    Branch tree[numBranches];
+    //Branch tree[numBranches];
+    Branch* tree = (Branch*)malloc(numBranches * sizeof(Branch));
     import_tree(userInput, tempTree, numBranches, TREE_VAL);
     for (int i = 0; i < numBranches; i++)
     {
