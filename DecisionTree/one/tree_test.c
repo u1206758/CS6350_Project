@@ -41,12 +41,12 @@ int main()
     int data[numInstances][NUM_ATTRIBUTES+1];
     int dataID[numInstances];
     import_data(userInput, data, numInstances, NUM_ATTRIBUTES, dataID);
-    int dataLabels[numInstances];
+    //int dataLabels[numInstances];
     int myLabels[numInstances];
     //Set up label arrays for error calculations
     for (int i = 0; i < numInstances; i++)
     {
-        dataLabels[i] = data[i][NUM_ATTRIBUTES];
+        //dataLabels[i] = data[i][NUM_ATTRIBUTES];
         myLabels[i] = -3;
     }
 
@@ -109,13 +109,13 @@ int main()
     printf("\n");
     if (ans == 'Y')
     {
-        printf("Real Label -- Predicted Label\n");
+        printf("Predicted Label\n");
         for (int i = 0; i < numInstances; i++)
         {
-            printf("\t%d  --  %d\n", dataLabels[i], myLabels[i]);
+            printf("%d\n", myLabels[i]);
         }
     }
-
+/*
     int incorrectPredictions = 0;
     for (int i = 0; i < numInstances; i++)
     {
@@ -127,7 +127,8 @@ int main()
 
     printf("\n%d incorrect predictions on %d instances\n", incorrectPredictions, numInstances);
     printf("prediction error: %.2f%% \n\n", ((float) incorrectPredictions / (float) numInstances)*100);
-
+*/
+    export_submission(myLabels, numInstances);
 }
 
 int count_entries(char fileName[])
@@ -186,7 +187,7 @@ int import_data(char fileName[], int data[][NUM_ATTRIBUTES+1], int numInstances,
             else
             {
                 token = strtok(row, ",");
-                for (int j = 0; j < numAttributes+1; j++)
+                for (int j = 0; j < numAttributes; j++)
                 {
                     //if (j == 0)
                     //{
@@ -503,12 +504,6 @@ int value_to_int(char* value, int attribute)
                 if (!(strcmp(value, "?")))
                     return 41;
                 break;
-            case 14:
-                if (!strcmp(value, "0"))
-                    return 0;
-                if (!strcmp(value, "1"))
-                    return 1;
-                break;
         }
     }
     return -99;
@@ -530,7 +525,7 @@ void export_submission(int myLabels[], int numInstances)
     
     for (short i = 0; i < numInstances; i++)
     {
-        fprintf(outputFile, "%d,%d\n", i, myLabels[i]);
+        fprintf(outputFile, "%d,%d\n", i+1, myLabels[i]);
     }
 
     fclose(outputFile);
