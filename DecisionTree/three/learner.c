@@ -131,12 +131,11 @@
         39: Hong
         40: Holand-Netherlands
 */
-//short numValues[NUM_ATTRIBUTES] = {3, 9, 3, 17, 3, 8, 15, 7, 6, 3, 3, 3, 3, 42};
-short numValues[NUM_ATTRIBUTES] = {2, 8, 2, 16, 2, 9, 14, 6, 5, 2, 2, 2, 2, 41};
+short numValues[NUM_ATTRIBUTES] = {3, 9, 3, 17, 3, 8, 15, 7, 6, 3, 3, 3, 3, 42};
 //Precalculated thresholds (medians) of numerical attributes
 float thresholds[NUM_ATTRIBUTES] = {37, 0, 177299.5, 0, 10, 0, 0, 0, 0, 0, 0, 0, 40, 0};
 bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, false, false, false, true, true, true, false};
-#define MAX_VAL 41 
+#define MAX_VAL 42 
 #define MAX_BRANCH 32000
 
 short split_leaf(short currentInstances[NUM_I], short data[][NUM_ATTRIBUTES+1], short numInstances, short method, bool parentAttribute[NUM_ATTRIBUTES], short branchIndex);
@@ -182,54 +181,6 @@ int main()
     }
     short data[numInstances][NUM_ATTRIBUTES+1];
     import_data(data, numInstances);
-    //Find most common value of each attribute and replace unkown with it in dataset
-    int commonVal[NUM_ATTRIBUTES];
-    int valCount[NUM_ATTRIBUTES][MAX_VAL];
-    //Initialize counts to 0
-    for (int i = 0; i < NUM_ATTRIBUTES; i++)
-    {
-        commonVal[i] = -1;
-        for (int j = 0; j < MAX_VAL; j++)
-        {
-            valCount[i][j] = 0;
-        }   
-    }
-    //Count each occurence of each value in the dataset
-    for (int i = 0; i < numInstances; i++)
-    {
-        for (int j = 0; j < NUM_ATTRIBUTES; j++)
-        {
-            for (int k = 0; k < numValues[j]; k++)
-            {
-                if (data[i][j] == k)
-                {
-                   valCount[j][k]++;
-                }
-            }
-        }
-    }
-    //Find the most common value of each attribute
-    for (int i = 0; i < NUM_ATTRIBUTES; i++)
-    {
-        for (int j = 0; j < numValues[i]; j++)
-        {
-            if (valCount[i][j] > valCount[i][commonVal[i]])
-            {
-                commonVal[i] = j;
-            }
-        }
-    }
-    //Replace unkown values with most common
-    for (int i = 0; i < numInstances; i++)
-    {
-        for (int j = 0; j < NUM_ATTRIBUTES; j++)
-        {
-            if (data[i][j] == numValues[j])
-            {
-                data[i][j] = commonVal[j];
-            }
-        }
-    }
     short method = get_method();
     short maxDepth = get_max_depth();
     int maxBranches = MAX_BRANCH;
