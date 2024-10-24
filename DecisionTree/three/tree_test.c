@@ -6,8 +6,13 @@
 #define NUM_ATTRIBUTES 14
 #define MAX_VAL 42
 #define TREE_VAL 47
-int numValues[NUM_ATTRIBUTES] = {3, 9, 3, 17, 3, 8, 15, 7, 6, 3, 3, 3, 3, 42};
-float thresholds[NUM_ATTRIBUTES] = {37, 0, 177299.5, 0, 10, 0, 0, 0, 0, 0, 0, 0, 40, 0};
+//int numValues[NUM_ATTRIBUTES] = {3, 9, 3, 17, 3, 8, 15, 7, 6, 3, 3, 3, 3, 42};
+//float thresholds[NUM_ATTRIBUTES] = {37, 0, 177299.5, 0, 10, 0, 0, 0, 0, 0, 0, 0, 40, 0};
+short numValues[NUM_ATTRIBUTES] = {4, 9, 4, 17, 4, 8, 15, 7, 6, 3, 4, 4, 4, 42};
+//Precalculated thresholds (medians) of numerical attributes
+float thresholds[3][NUM_ATTRIBUTES] = {{28,0,117179.25,0,9,0,0,0,0,0,0,0,40},
+                                        {37,0,177299.5,0,10,0,0,0,0,0,0,0,40},
+                                        {48,0,235657.25,0,12,0,0,0,0,0,0,0,45}};
 bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, false, false, false, true, true, true, false};
 
 int count_entries(char fileName[]);
@@ -254,19 +259,11 @@ int value_to_int(char* value, int attribute)
     }
     else if (isNumeric[attribute])
     {
-        if (!(strcmp(value, "?")))
-            return 2;
-        else
+        for (int i = 0; i < 4; i++)
         {
-            if (atoi(value) <= thresholds[attribute])
+            if (i == 3 || atoi(value) <= thresholds[i][attribute])
             {
-                //yes <=
-                return 0;
-            }
-            else
-            {
-                //no >
-                return 1;
+                return i;
             }
         }
     }
