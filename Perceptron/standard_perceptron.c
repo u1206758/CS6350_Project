@@ -37,6 +37,8 @@ int main()
     float b = 0;
     float prediction = 0;
 
+    int updates = 0;
+
     for (int epoch = 0; epoch < EPOCHS; epoch++)
     {
         shuffle_data(training_data);
@@ -54,6 +56,7 @@ int main()
             if ((prediction <= 0 && training_data[i][NUM_ATTRIBUTES] == 1) || (prediction > 0 && training_data[i][NUM_ATTRIBUTES] == -1))
             {
                 //Update function if necessary
+                updates++;
                 for (int j = 0; j < NUM_ATTRIBUTES; j++)
                 {
                     w[j] += training_data[i][NUM_ATTRIBUTES] * training_data[i][j];
@@ -64,6 +67,7 @@ int main()
     }
 
     printf("\nLearning complete\n\n");
+    printf("%d updates\n",updates);
     for (int i = 0; i < NUM_ATTRIBUTES; i++)
     {
         printf("w[%d]: %f\n", i, w[i]);

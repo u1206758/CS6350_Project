@@ -5,8 +5,8 @@
 #include <math.h>
 #include <sys/time.h>
 
-#define EPOCHS 10   //Number of epochs to repeat perceptron algorithm each run
-#define MAX_VECTORS 60000 //Size of weights array
+#define EPOCHS 8   //Number of epochs to repeat perceptron algorithm each run
+#define MAX_VECTORS 80000 //Size of weights array
 
 #define NUM_TRAINING_INSTANCES 25000   //872 instances in the training set
 #define NUM_TESTING_INSTANCES 23842   //500 instances in the test set
@@ -36,7 +36,7 @@ int main()
     
     float w[NUM_ATTRIBUTES][MAX_VECTORS];
     float b[MAX_VECTORS];
-    int count[MAX_VECTORS];
+    short count[MAX_VECTORS];
     for (int i = 0; i < MAX_VECTORS; i++)
     {
         for (int j = 0; j < NUM_ATTRIBUTES; j++)
