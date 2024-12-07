@@ -1,5 +1,11 @@
 .DS_Store
 *.out
 DecisionTree/*.out
-DecisionTree/car/*.out
-DecisionTree/bank/*.out
+DecisionTree/one/*.out
+DecisionTree/two/*.out
+DecisionTree/three/*.out
+DecisionTree/.DS_Store
+Perceptron/*.out
+Perceptron/.DS_Store
+SVM/*.out
+SVM/.DS_Store
