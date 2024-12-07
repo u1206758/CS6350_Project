@@ -28,11 +28,11 @@ int main()
     //Import training data from CSV
     if (import_training_data(training_data) == -99)
         return 1;
-    printf("imported training data\n");
+    
     //Import testing data from CSV
     if (import_testing_data(testing_data) == -99)
         return 1;
-    printf("imported testing data\n");
+    
     float w[NUM_ATTRIBUTES] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     float b = 0;
     float prediction = 0;
@@ -242,7 +242,7 @@ float value_to_float(char* value, short attribute)
                 if (!strcmp(value, "Never-worked"))
                     return 7;
                 if (!(strcmp(value, "?")))
-                    return 8;
+                    return -1;
                 break;
             case 3:
                 if (!strcmp(value, "Bachelors"))
@@ -278,7 +278,7 @@ float value_to_float(char* value, short attribute)
                 if (!strcmp(value, "Preschool"))
                     return 15;
                 if (!(strcmp(value, "?")))
-                    return 16;
+                    return -1;
                 break;
             case 5:
                 if (!strcmp(value, "Married-civ-spouse"))
@@ -296,7 +296,7 @@ float value_to_float(char* value, short attribute)
                 if (!strcmp(value, "Married-AF-spouse"))
                     return 6;
                 if (!(strcmp(value, "?")))
-                    return 7;
+                    return -1;
                 break;
             case 6:
                 if (!strcmp(value, "Tech-support"))
@@ -328,7 +328,7 @@ float value_to_float(char* value, short attribute)
                 if (!strcmp(value, "Armed-Forces"))
                     return 13;
                 if (!(strcmp(value, "?")))
-                    return 14;
+                    return -1;
                 break;
             case 7:
                 if (!strcmp(value, "Wife"))
@@ -344,7 +344,7 @@ float value_to_float(char* value, short attribute)
                 if (!strcmp(value, "Unmarried"))
                     return 5;
                 if (!(strcmp(value, "?")))
-                    return 6;
+                    return -1;
                 break;
             case 8:
                 if (!strcmp(value, "White"))
@@ -358,7 +358,7 @@ float value_to_float(char* value, short attribute)
                 if (!strcmp(value, "Black"))
                     return 4;
                 if (!(strcmp(value, "?")))
-                    return 5;
+                    return -1;
                 break;
             case 9:
                 if (!strcmp(value, "Female"))
@@ -366,7 +366,7 @@ float value_to_float(char* value, short attribute)
                 if (!strcmp(value, "Male"))
                     return 1;
                 if (!(strcmp(value, "?")))
-                    return 2;
+                    return -1;
                 break;
             case 13:
                 if (!strcmp(value, "United-States"))
@@ -452,7 +452,7 @@ float value_to_float(char* value, short attribute)
                 if (!strcmp(value, "Holand-Netherlands"))
                     return 40;
                 if (!(strcmp(value, "?")))
-                    return 41;
+                    return -1;
                 break;
             case 14:
                 if (!strcmp(value, "0"))
