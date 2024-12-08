@@ -206,6 +206,10 @@ int import_training_data(float data[][NUM_ATTRIBUTES+1])
                 for (int j = 0; j < NUM_ATTRIBUTES+1; j++)
                 {
                     data[i][j] = value_to_float(token, j);
+                    if (j < NUM_ATTRIBUTES && !isNumeric[j])
+                    {
+                        data[i][j] *= 100;
+                    }
                     /*
                     data[i][j] = atof(token);
                     if (j == 4 && data[i][j] == 0)
@@ -336,6 +340,7 @@ float value_to_float(char* value, short attribute)
                     return 0;
                 break;
             case 5:
+                return 0;
                 if (!strcmp(value, "Married-civ-spouse"))
                     return -11;
                 if (!strcmp(value, "Divorced"))
@@ -354,6 +359,7 @@ float value_to_float(char* value, short attribute)
                     return 0;
                 break;
             case 6:
+                return 0;
                 if (!strcmp(value, "Tech-support"))
                     return -41;
                 if (!strcmp(value, "Craft-repair"))
@@ -386,6 +392,7 @@ float value_to_float(char* value, short attribute)
                     return -81;
                 break;
             case 7:
+                return 0;
                 if (!strcmp(value, "Wife"))
                     return -5;
                 if (!strcmp(value, "Own-child"))
@@ -402,6 +409,7 @@ float value_to_float(char* value, short attribute)
                     return 0;
                 break;
             case 8:
+                return 0;
                 if (!strcmp(value, "White"))
                     return -49;
                 if (!strcmp(value, "Asian-Pac-Islander"))
@@ -416,6 +424,7 @@ float value_to_float(char* value, short attribute)
                     return 0;
                 break;
             case 9:
+                return 0;
                 if (!strcmp(value, "Female"))
                     return -78;
                 if (!strcmp(value, "Male"))
@@ -424,6 +433,7 @@ float value_to_float(char* value, short attribute)
                     return 0;
                 break;
             case 13:
+                return 0;
                 if (!strcmp(value, "United-States"))
                     return -51;
                 if (!strcmp(value, "Cambodia"))

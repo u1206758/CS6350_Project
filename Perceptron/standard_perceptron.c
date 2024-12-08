@@ -5,7 +5,7 @@
 #include <math.h>
 #include <sys/time.h>
 
-#define EPOCHS 10   //Number of epochs to repeat perceptron algorithm each run
+#define EPOCHS 100   //Number of epochs to repeat perceptron algorithm each run
 
 #define NUM_TRAINING_INSTANCES 25000   //872 instances in the training set
 #define NUM_TESTING_INSTANCES 23842   //500 instances in the test set
@@ -155,6 +155,10 @@ int import_training_data(float data[][NUM_ATTRIBUTES+1])
                 for (int j = 0; j < NUM_ATTRIBUTES+1; j++)
                 {
                     data[i][j] = value_to_float(token, j);
+                    if (j < NUM_ATTRIBUTES && !isNumeric[j])
+                    {
+                        data[i][j] *= 100;
+                    }
                     /*
                     data[i][j] = atof(token);
                     if (j == 4 && data[i][j] == 0)
