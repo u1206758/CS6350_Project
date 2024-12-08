@@ -10,9 +10,9 @@
 #define NUM_TRAINING_INSTANCES 25000   //872 instances in the training set
 #define NUM_TESTING_INSTANCES 23842   //500 instances in the test set
 #define NUM_LABELS 2        //Binary label
-#define NUM_ATTRIBUTES 14    //4 attributes
+#define NUM_ATTRIBUTES 13    //attributes
 
-bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, false, false, false, true, true, true, false};
+bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, false, false, false, true, true, true};
 
 int import_training_data(float data[][NUM_ATTRIBUTES+1]);
 int import_testing_data(float data[][NUM_ATTRIBUTES+1]);
@@ -33,12 +33,11 @@ int main()
     if (import_testing_data(testing_data) == -99)
         return 1;
     
-    float w[NUM_ATTRIBUTES] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    float w[NUM_ATTRIBUTES] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     float b = 0;
     float prediction = 0;
-    float wAvg[4] = {0, 0, 0, 0};
-    float bAvg = 0;
-    int numVectors = 0;
+
+    int updates = 0;
 
     for (int epoch = 0; epoch < EPOCHS; epoch++)
     {
@@ -57,25 +56,18 @@ int main()
             if ((prediction <= 0 && training_data[i][NUM_ATTRIBUTES] == 1) || (prediction > 0 && training_data[i][NUM_ATTRIBUTES] == -1))
             {
                 //Update function if necessary
+                updates++;
                 for (int j = 0; j < NUM_ATTRIBUTES; j++)
                 {
                     w[j] += training_data[i][NUM_ATTRIBUTES] * training_data[i][j];
-                    wAvg[j] += w[j];
                 }
                 b += training_data[i][NUM_ATTRIBUTES];
-                bAvg += b;
-                numVectors++;
             }
         }
     }
 
-    wAvg[0] /= numVectors;
-    wAvg[1] /= numVectors;
-    wAvg[2] /= numVectors;
-    wAvg[3] /= numVectors;
-    bAvg /= numVectors;
-
     printf("\nLearning complete\n\n");
+    printf("%d updates\n",updates);
     for (int i = 0; i < NUM_ATTRIBUTES; i++)
     {
         printf("w[%d]: %f\n", i, w[i]);
@@ -91,9 +83,9 @@ int main()
         //Calculate prediction with current linear function
         for (int j = 0; j < NUM_ATTRIBUTES; j++)
         {
-            prediction += wAvg[j]*training_data[i][j];
+            prediction += w[j]*training_data[i][j];
         }
-        prediction += bAvg;
+        prediction += b;
         
         //Compare prediction to actual label
         if ((prediction <= 0 && training_data[i][NUM_ATTRIBUTES] == 1) || (prediction > 0 && training_data[i][NUM_ATTRIBUTES] == -1))
@@ -115,9 +107,9 @@ int main()
         //Calculate prediction with current linear function
         for (int j = 0; j < NUM_ATTRIBUTES; j++)
         {
-            prediction += wAvg[j]*testing_data[i][j];
+            prediction += w[j]*testing_data[i][j];
         }
-        prediction += bAvg;
+        prediction += b;
         
         if (prediction < 0)
         {
@@ -138,7 +130,7 @@ int main()
 
 int import_training_data(float data[][NUM_ATTRIBUTES+1])
 {
-    FILE *inputFile = fopen("train_final.csv", "r");
+    FILE *inputFile = fopen("train_final_slim.csv", "r");
     if (inputFile == NULL)
     {
         printf("Error opening file");
@@ -184,7 +176,7 @@ int import_training_data(float data[][NUM_ATTRIBUTES+1])
 
 int import_testing_data(float data[][NUM_ATTRIBUTES+1])
 {
-    FILE *inputFile = fopen("test_final.csv", "r");
+    FILE *inputFile = fopen("test_final_slim.csv", "r");
     if (inputFile == NULL)
     {
         printf("Error opening file");
@@ -240,6 +232,7 @@ float value_to_float(char* value, short attribute)
     {
         switch (attribute)
         {
+            
             case 1:
                 if (!strcmp(value, "Private"))
                     return -56;
@@ -384,6 +377,7 @@ float value_to_float(char* value, short attribute)
                 if (!(strcmp(value, "?")))
                     return 0;
                 break;
+            /*
             case 13:
                 if (!strcmp(value, "United-States"))
                     return -51;
@@ -470,7 +464,8 @@ float value_to_float(char* value, short attribute)
                 if (!(strcmp(value, "?")))
                     return -50;
                 break;
-            case 14:
+            */
+            case 13:
                 if (!strcmp(value, "0"))
                     return -1;
                 if (!strcmp(value, "1"))

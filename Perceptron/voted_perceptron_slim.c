@@ -5,7 +5,8 @@
 #include <math.h>
 #include <sys/time.h>
 
-#define EPOCHS 100   //Number of epochs to repeat perceptron algorithm each run
+#define EPOCHS 8   //Number of epochs to repeat perceptron algorithm each run
+#define MAX_VECTORS 80000 //Size of weights array
 
 #define NUM_TRAINING_INSTANCES 25000   //872 instances in the training set
 #define NUM_TESTING_INSTANCES 23842   //500 instances in the test set
@@ -33,12 +34,20 @@ int main()
     if (import_testing_data(testing_data) == -99)
         return 1;
     
-    float w[NUM_ATTRIBUTES] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    float b = 0;
+    float w[NUM_ATTRIBUTES][MAX_VECTORS];
+    float b[MAX_VECTORS];
+    short count[MAX_VECTORS];
+    for (int i = 0; i < MAX_VECTORS; i++)
+    {
+        for (int j = 0; j < NUM_ATTRIBUTES; j++)
+        {
+            w[j][i] = 0;
+        }
+        b[i] = 0;
+        count[i] = 1;
+    }
+    int vectorIndex = 0;
     float prediction = 0;
-    float wAvg[4] = {0, 0, 0, 0};
-    float bAvg = 0;
-    int numVectors = 0;
 
     for (int epoch = 0; epoch < EPOCHS; epoch++)
     {
@@ -49,51 +58,69 @@ int main()
             //Calculate prediction with current linear function
             for (int j = 0; j < NUM_ATTRIBUTES; j++)
             {
-                prediction += w[j]*training_data[i][j];
+                prediction += w[j][vectorIndex]*training_data[i][j];
             }
-            prediction += b;
+            prediction += b[vectorIndex];
             
             //Compare prediction to actual label
             if ((prediction <= 0 && training_data[i][NUM_ATTRIBUTES] == 1) || (prediction > 0 && training_data[i][NUM_ATTRIBUTES] == -1))
             {
                 //Update function if necessary
+                vectorIndex++;
+                if (vectorIndex > MAX_VECTORS)
+                {
+                    printf("Out of vectors!   %d, %d\n",vectorIndex, i);
+                    return 1;
+                }
                 for (int j = 0; j < NUM_ATTRIBUTES; j++)
                 {
-                    w[j] += training_data[i][NUM_ATTRIBUTES] * training_data[i][j];
-                    wAvg[j] += w[j];
+                    w[j][vectorIndex] = w[j][vectorIndex-1] + training_data[i][NUM_ATTRIBUTES] * training_data[i][j];
                 }
-                b += training_data[i][NUM_ATTRIBUTES];
-                bAvg += b;
-                numVectors++;
+                b[vectorIndex] = b[vectorIndex-1] + training_data[i][NUM_ATTRIBUTES];
+            }
+            else
+            {
+                count[vectorIndex]++;
             }
         }
     }
 
-    wAvg[0] /= numVectors;
-    wAvg[1] /= numVectors;
-    wAvg[2] /= numVectors;
-    wAvg[3] /= numVectors;
-    bAvg /= numVectors;
-
     printf("\nLearning complete\n\n");
-    for (int i = 0; i < NUM_ATTRIBUTES; i++)
-    {
-        printf("w[%d]: %f\n", i, w[i]);
-    }
-    printf("b: %f\n", b);
+    //for (int i = 0; i < NUM_ATTRIBUTES; i++)
+    //{
+    //    printf("w[%d]: %f\n", i, w[i]);
+    //}
+    //printf("b: %f\n", b);
 
     int errors = 0;
+    float midPrediction[MAX_VECTORS];
+    for (int i = 0; i < MAX_VECTORS; i++)
+    {
+        midPrediction[i] = 0;
+    }
 
     //Make predictions on training data using learned function
     for (int i = 0; i < NUM_TRAINING_INSTANCES; i++)
     {
         prediction = 0;
         //Calculate prediction with current linear function
-        for (int j = 0; j < NUM_ATTRIBUTES; j++)
+        for (int j = 0; j < vectorIndex; j++)
         {
-            prediction += wAvg[j]*training_data[i][j];
+            for (int k = 0; k < NUM_ATTRIBUTES; k++)
+            {
+                midPrediction[j] += w[k][j]*training_data[i][k];
+            }
+            midPrediction[j] += b[j];
+            if (midPrediction[j] <= 0)
+            {
+                midPrediction[j] = -1;
+            }
+            else
+            {
+                midPrediction[j] = 1;
+            }
+            prediction += midPrediction[j] * count[j];
         }
-        prediction += bAvg;
         
         //Compare prediction to actual label
         if ((prediction <= 0 && training_data[i][NUM_ATTRIBUTES] == 1) || (prediction > 0 && training_data[i][NUM_ATTRIBUTES] == -1))
@@ -108,17 +135,33 @@ int main()
 
     int myLabels[NUM_TRAINING_INSTANCES];
 
+    for (int i = 0; i < MAX_VECTORS; i++)
+    {
+        midPrediction[i] = 0;
+    }
+
     //Make predictions on testing data using learned function
     for (int i = 0; i < NUM_TESTING_INSTANCES; i++)
     {
         prediction = 0;
         //Calculate prediction with current linear function
-        for (int j = 0; j < NUM_ATTRIBUTES; j++)
+        for (int j = 0; j < vectorIndex; j++)
         {
-            prediction += wAvg[j]*testing_data[i][j];
+            for (int k = 0; k < NUM_ATTRIBUTES; k++)
+            {
+                midPrediction[j] += w[k][j]*testing_data[i][k];
+            }
+            midPrediction[j] += b[j];
+            if (midPrediction[j] <= 0)
+            {
+                midPrediction[j] = -1;
+            }
+            else
+            {
+                midPrediction[j] = 1;
+            }
+            prediction += midPrediction[j] * count[j];
         }
-        prediction += bAvg;
-        
         if (prediction < 0)
         {
             myLabels[i] = 0;
@@ -131,7 +174,7 @@ int main()
     
     //Export predictions to CSV
     printf("\nTesting data predicting complete\n");
-    //export_submission(myLabels, NUM_TRAINING_INSTANCES);
+    export_submission(myLabels, NUM_TESTING_INSTANCES);
 
     return 0;
 }
@@ -297,6 +340,7 @@ float value_to_float(char* value, short attribute)
                     return 0;
                 break;
             case 5:
+                return 0;
                 if (!strcmp(value, "Married-civ-spouse"))
                     return -11;
                 if (!strcmp(value, "Divorced"))
@@ -315,6 +359,7 @@ float value_to_float(char* value, short attribute)
                     return 0;
                 break;
             case 6:
+                return 0;
                 if (!strcmp(value, "Tech-support"))
                     return -41;
                 if (!strcmp(value, "Craft-repair"))
@@ -347,6 +392,7 @@ float value_to_float(char* value, short attribute)
                     return -81;
                 break;
             case 7:
+                return 0;
                 if (!strcmp(value, "Wife"))
                     return -5;
                 if (!strcmp(value, "Own-child"))
@@ -363,6 +409,7 @@ float value_to_float(char* value, short attribute)
                     return 0;
                 break;
             case 8:
+                return 0;
                 if (!strcmp(value, "White"))
                     return -49;
                 if (!strcmp(value, "Asian-Pac-Islander"))
@@ -377,6 +424,7 @@ float value_to_float(char* value, short attribute)
                     return 0;
                 break;
             case 9:
+                return 0;
                 if (!strcmp(value, "Female"))
                     return -78;
                 if (!strcmp(value, "Male"))
@@ -385,6 +433,7 @@ float value_to_float(char* value, short attribute)
                     return 0;
                 break;
             case 13:
+                return 0;
                 if (!strcmp(value, "United-States"))
                     return -51;
                 if (!strcmp(value, "Cambodia"))
