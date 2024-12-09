@@ -38,7 +38,8 @@ int main()
     float prediction = 0;
 
     int updates = 0;
-
+    int errors = 0;
+do {
     for (int epoch = 0; epoch < EPOCHS; epoch++)
     {
         shuffle_data(training_data);
@@ -66,16 +67,14 @@ int main()
         }
     }
 
-    printf("\nLearning complete\n\n");
-    printf("%d updates\n",updates);
-    for (int i = 0; i < NUM_ATTRIBUTES; i++)
-    {
-        printf("w[%d]: %f\n", i, w[i]);
-    }
-    printf("b: %f\n", b);
-
-    int errors = 0;
-
+    //printf("\nLearning complete\n\n");
+    //printf("%d updates\n",updates);
+    //for (int i = 0; i < NUM_ATTRIBUTES; i++)
+    //{
+    //    printf("w[%d]: %f\n", i, w[i]);
+    //}
+    //printf("b: %f\n", b);
+    errors = 0;
     //Make predictions on training data using learned function
     for (int i = 0; i < NUM_TRAINING_INSTANCES; i++)
     {
@@ -93,12 +92,13 @@ int main()
             errors++;
         }
     }
-
+    //printf("Prediction accuracy: %.2f%% \n\n", 100.0 - ((float) errors / (float) NUM_TRAINING_INSTANCES)*100);
+} while (100.0 - ((float) errors / (float) NUM_TRAINING_INSTANCES)*100 < 84.2);
     printf("\nTraining data predicting complete\n");
     printf("\n%d incorrect predictions on %d instances\n", errors, NUM_TRAINING_INSTANCES);
     printf("Prediction accuracy: %.2f%% \n\n", 100.0 - ((float) errors / (float) NUM_TRAINING_INSTANCES)*100);
 
-    int myLabels[NUM_TRAINING_INSTANCES];
+    int myLabels[NUM_TESTING_INSTANCES];
 
     //Make predictions on testing data using learned function
     for (int i = 0; i < NUM_TESTING_INSTANCES; i++)
@@ -120,10 +120,10 @@ int main()
             myLabels[i] = 1;
         }
     }
-    
+
     //Export predictions to CSV
     printf("\nTesting data predicting complete\n");
-    //export_submission(myLabels, NUM_TRAINING_INSTANCES);
+    export_submission(myLabels, NUM_TESTING_INSTANCES);
 
     return 0;
 }

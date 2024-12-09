@@ -11,9 +11,9 @@
 #define NUM_TRAINING_INSTANCES 25000   //872 instances in the training set
 #define NUM_TESTING_INSTANCES 23842   //500 instances in the test set
 #define NUM_LABELS 2        //Binary label
-#define NUM_ATTRIBUTES 14    //4 attributes
+#define NUM_ATTRIBUTES 13    //4 attributes
 
-bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, false, false, false, true, true, true, false};
+bool isNumeric[NUM_ATTRIBUTES] = {true, false, true, false, true, false, false, false, false, false, true, true, true};
 
 int import_training_data(float data[][NUM_ATTRIBUTES+1]);
 int import_testing_data(float data[][NUM_ATTRIBUTES+1]);
@@ -181,7 +181,7 @@ int main()
 
 int import_training_data(float data[][NUM_ATTRIBUTES+1])
 {
-    FILE *inputFile = fopen("train_final.csv", "r");
+    FILE *inputFile = fopen("train_final_slim.csv", "r");
     if (inputFile == NULL)
     {
         printf("Error opening file");
@@ -227,7 +227,7 @@ int import_training_data(float data[][NUM_ATTRIBUTES+1])
 
 int import_testing_data(float data[][NUM_ATTRIBUTES+1])
 {
-    FILE *inputFile = fopen("test_final.csv", "r");
+    FILE *inputFile = fopen("test_final_slim.csv", "r");
     if (inputFile == NULL)
     {
         printf("Error opening file");
@@ -432,6 +432,7 @@ float value_to_float(char* value, short attribute)
                 if (!(strcmp(value, "?")))
                     return 0;
                 break;
+            /*
             case 13:
                 return 0;
                 if (!strcmp(value, "United-States"))
@@ -519,7 +520,8 @@ float value_to_float(char* value, short attribute)
                 if (!(strcmp(value, "?")))
                     return -50;
                 break;
-            case 14:
+            */
+            case 13:
                 if (!strcmp(value, "0"))
                     return -1;
                 if (!strcmp(value, "1"))
